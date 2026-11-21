@@ -46,14 +46,18 @@ enum OutputCleaner {
         "take care",
     ]
 
+    private static let placeholderBrackets: [(String, String)] = [("[", "]"), ("<", ">"), ("{", "}")]
+
     /// Drops trailing placeholder and sign-off lines the original did not have.
     private static func removeAddedEnding(_ text: String, original: String) -> String {
         let originalLower = original.lowercased()
         var text = text
-        // An inline placeholder first, for example "Best, [Your Name]".
-        if !original.contains("[") {
+        // An inline placeholder first, for example "Best, [Your Name]" or "<Your Name>".
+        for (open, close) in placeholderBrackets where !original.contains(open) {
+            let o = NSRegularExpression.escapedPattern(for: open)
+            let c = NSRegularExpression.escapedPattern(for: close)
             text = text.replacingOccurrences(
-                of: #"[ \t]*\[(your|my|sender'?s?)[^\]]*\]"#, with: "",
+                of: "[ \\t]*\(o)(your|my|sender'?s?|name|signature)[^\(c)]*\(c)", with: "",
                 options: [.regularExpression, .caseInsensitive])
         }
         var lines = text.components(separatedBy: "\n")
@@ -63,7 +67,9 @@ enum OutputCleaner {
                 lines.removeLast()
                 continue
             }
-            let isPlaceholder = trimmed.hasPrefix("[") && trimmed.hasSuffix("]") && !original.contains("[")
+            let isPlaceholder = placeholderBrackets.contains { open, close in
+                trimmed.hasPrefix(open) && trimmed.hasSuffix(close) && !original.contains(open)
+            }
             let bare = trimmed.lowercased().trimmingCharacters(in: CharacterSet(charactersIn: ",.!"))
             let isAddedSignOff = signOffs.contains(bare) && !originalLower.contains(bare)
             guard isPlaceholder || isAddedSignOff else { break }
