@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Builds a release of Nudge: signed with Developer ID, notarized by Apple,
 # packed in a DMG, signed for Sparkle updates, with an appcast and a
-# Homebrew cask. Nothing is published unless you pass --publish.
+# Homebrew cask file. Nothing is published unless you pass --publish.
 #
 #   ./scripts/release.sh 0.1.0                   build everything locally
 #   ./scripts/release.sh 0.1.0 --skip-notarize   local test, no Apple upload
@@ -78,8 +78,11 @@ xcodebuild -exportArchive -archivePath "$OUT/Nudge.xcarchive" \
 
 step "Checking the signature"
 codesign --verify --deep --strict --verbose=1 "$APP"
-codesign -dv "$APP" 2>&1 | grep -E "Authority=Developer ID Application|flags=.*runtime" >/dev/null \
-  || { echo "error: not signed with Developer ID and the hardened runtime." >&2; exit 1; }
+SIGN_INFO=$(codesign -dvv "$APP" 2>&1)
+grep -q "Authority=Developer ID Application" <<<"$SIGN_INFO" \
+  || { echo "error: not signed with Developer ID." >&2; exit 1; }
+grep -qE "flags=.*runtime" <<<"$SIGN_INFO" \
+  || { echo "error: the hardened runtime is off." >&2; exit 1; }
 if codesign -d --entitlements - "$APP" 2>/dev/null | grep -q "get-task-allow"; then
   echo "error: release build still has the debugging entitlement." >&2; exit 1
 fi
@@ -131,7 +134,7 @@ XML
 
 step "Writing the Homebrew cask"
 SHA=$(shasum -a 256 "$DMG" | cut -d' ' -f1)
-cat > packaging/homebrew/nudge.rb <<RUBY
+cat > "$OUT/nudge.rb" <<RUBY
 cask "nudge" do
   version "$VERSION"
   sha256 "$SHA"
@@ -157,7 +160,7 @@ RUBY
 echo
 echo "Done: $DMG"
 echo "      $OUT/appcast.xml"
-echo "      packaging/homebrew/nudge.rb"
+echo "      $OUT/nudge.rb  (submit to homebrew-cask once published)"
 
 if [[ $PUBLISH == 1 ]]; then
   step "Publishing v$VERSION on GitHub"
