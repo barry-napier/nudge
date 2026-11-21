@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		16FEEEA40FBC8F358E1EB455 /* ActionPopover.swift in Sources */ = {isa = PBXBuildFile; fileRef = 93B0C12EF25DD601A6F36D27 /* ActionPopover.swift */; };
 		17D4D0E6B0CDFCB0C14978EE /* TextWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1E4916B0FEA55E81AD4FE688 /* TextWriter.swift */; };
+		29A13746DA7257BD2E33279A /* CandidatePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = E09F03D4FECC9B7997BE59A9 /* CandidatePicker.swift */; };
 		325C6B7468FD1809A4BCE3A3 /* FocusTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0C4EFA1CBC9AE5BE199157A /* FocusTracker.swift */; };
 		42C2B2FDBEB1AFF99F4352FA /* Clipboard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 33D5DA2966DDFAE75FC1BF1C /* Clipboard.swift */; };
 		45C57773AB7E264BC305C69B /* KeyPoster.swift in Sources */ = {isa = PBXBuildFile; fileRef = A39BC8F77D7252C7E323F165 /* KeyPoster.swift */; };
@@ -53,6 +54,7 @@
 		A8010B7C450C53F6821E9795 /* OutputCleaner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputCleaner.swift; sourceTree = "<group>"; };
 		B67D49B791DFDBDE73ABA853 /* RewriteController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewriteController.swift; sourceTree = "<group>"; };
 		C0C4EFA1CBC9AE5BE199157A /* FocusTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusTracker.swift; sourceTree = "<group>"; };
+		E09F03D4FECC9B7997BE59A9 /* CandidatePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CandidatePicker.swift; sourceTree = "<group>"; };
 		E41B5D370D5B3E30D3A7B042 /* KeyboardTap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardTap.swift; sourceTree = "<group>"; };
 		F2AD750BA2DD8F0DB44CC6E2 /* DebugLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugLogView.swift; sourceTree = "<group>"; };
 		FD61E0B5184F594FAACB7628 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -82,6 +84,7 @@
 		6E974825388B2F5D6ED632F4 /* Rewrite */ = {
 			isa = PBXGroup;
 			children = (
+				E09F03D4FECC9B7997BE59A9 /* CandidatePicker.swift */,
 				A8010B7C450C53F6821E9795 /* OutputCleaner.swift */,
 				006A82EA358ADFF0BF2A9EB9 /* RewriteAction.swift */,
 				7E45935F08E4F1C2F1656590 /* Rewriter.swift */,
@@ -231,6 +234,7 @@
 				16FEEEA40FBC8F358E1EB455 /* ActionPopover.swift in Sources */,
 				EFA09A06F2C0A8B9EAADBD25 /* AppDelegate.swift in Sources */,
 				C570D1F98D0AC5523FBD026B /* AppState.swift in Sources */,
+				29A13746DA7257BD2E33279A /* CandidatePicker.swift in Sources */,
 				42C2B2FDBEB1AFF99F4352FA /* Clipboard.swift in Sources */,
 				CF90E569DCEBE42FDFE4C32D /* DebugLogView.swift in Sources */,
 				325C6B7468FD1809A4BCE3A3 /* FocusTracker.swift in Sources */,

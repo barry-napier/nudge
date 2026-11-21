@@ -70,11 +70,20 @@ enum RewriteAction: String, CaseIterable, Identifiable, Sendable {
         }
     }
 
+    var strategy: CandidatePicker.Strategy {
+        switch self {
+        case .fix, .improve: .single
+        case .concise: .shortest
+        case .formal, .casual, .friendly, .direct: .mostChanged
+        }
+    }
+
     var temperature: Double {
         switch self {
         case .fix: 0.1
         case .concise, .formal, .direct: 0.4
-        case .improve, .casual, .friendly: 0.5
+        case .improve: 0.5
+        case .casual, .friendly: 0.7
         }
     }
 }
@@ -83,15 +92,20 @@ enum RewriteAction: String, CaseIterable, Identifiable, Sendable {
 struct RewriteRequest: Sendable {
     let logName: String
     let temperature: Double
+    let strategy: CandidatePicker.Strategy
     let action: RewriteAction?
     let customInstruction: String?
 
     static func preset(_ action: RewriteAction) -> RewriteRequest {
-        RewriteRequest(logName: action.logName, temperature: action.temperature, action: action, customInstruction: nil)
+        RewriteRequest(
+            logName: action.logName, temperature: action.temperature, strategy: action.strategy,
+            action: action, customInstruction: nil)
     }
 
     static func custom(_ instruction: String) -> RewriteRequest {
-        RewriteRequest(logName: "Custom", temperature: 0.7, action: nil, customInstruction: instruction)
+        RewriteRequest(
+            logName: "Custom", temperature: 0.8, strategy: .mostChanged,
+            action: nil, customInstruction: instruction)
     }
 
     func instruction(for text: String) -> String {

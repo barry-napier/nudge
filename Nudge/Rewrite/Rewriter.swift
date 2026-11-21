@@ -21,7 +21,7 @@ enum RewriteError: LocalizedError {
 enum Rewriter {
     static let maxCharacters = 3000
 
-    private static let instructions = """
+    private nonisolated static let instructions = """
         You are a careful writing assistant. You edit text that the user wrote. \
         Reply with only the edited text. Do not add a greeting, an explanation, notes, \
         quotation marks or Markdown. Never add a sign-off, a signature or a placeholder such as [Your Name] that the text does not already have. \
@@ -105,18 +105,49 @@ enum Rewriter {
             \(core)
             </text>
             """
-        let session = LanguageModelSession(instructions: instructions)
-        let content: String
-        do {
-            let response = try await session.respond(
-                to: prompt, options: GenerationOptions(temperature: request.temperature))
-            content = response.content
-        } catch let error as LanguageModelSession.GenerationError {
-            throw RewriteError.model(message(for: error))
+        let candidates = try await generate(
+            prompt: prompt, temperature: request.temperature, count: request.strategy.count)
+            .map { OutputCleaner.clean($0, original: core) }
+        guard let best = CandidatePicker.pick(candidates, original: core, strategy: request.strategy) else {
+            throw RewriteError.emptyResult
         }
-        let cleaned = OutputCleaner.clean(content, original: core)
-        guard !cleaned.isEmpty else { throw RewriteError.emptyResult }
-        return leading + cleaned + trailing
+        return leading + best + trailing
+    }
+
+    /// Asks the model for one or more versions at the same time. Fails only
+    /// if every version fails.
+    private nonisolated static func generate(prompt: String, temperature: Double, count: Int) async throws -> [String] {
+        let instructions = Self.instructions
+        var results: [String] = []
+        var firstError: Error?
+        await withTaskGroup(of: Result<String, Error>.self) { group in
+            for _ in 0..<count {
+                group.addTask {
+                    do {
+                        let session = LanguageModelSession(instructions: instructions)
+                        let response = try await session.respond(
+                            to: prompt, options: GenerationOptions(temperature: temperature))
+                        return .success(response.content)
+                    } catch {
+                        return .failure(error)
+                    }
+                }
+            }
+            for await result in group {
+                switch result {
+                case .success(let text): results.append(text)
+                case .failure(let error): firstError = firstError ?? error
+                }
+            }
+        }
+        try Task.checkCancellation()
+        if results.isEmpty, let firstError {
+            if let error = firstError as? LanguageModelSession.GenerationError {
+                throw RewriteError.model(await message(for: error))
+            }
+            throw firstError
+        }
+        return results
     }
 
     private static func message(for error: LanguageModelSession.GenerationError) -> String {
