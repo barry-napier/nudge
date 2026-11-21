@@ -3,8 +3,8 @@
 A private, on-device writing helper for macOS. Nudge shows a small icon next to
 the text field you are typing in, in any app. Nothing leaves your Mac.
 
-Status: **Stage 1**. The icon appears and hides with focus. It does not read or
-change text yet.
+Status: **Stage 2**. Click the icon to fix, shorten or improve the text in the
+field with Apple's on-device model, with Undo.
 
 ## Requirements
 

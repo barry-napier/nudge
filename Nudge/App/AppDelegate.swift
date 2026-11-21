@@ -5,7 +5,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     let state = AppState()
 
     private let tracker = FocusTracker()
-    private let icon = IconPanel()
+    private let controller = RewriteController()
     private var isTracking = false
     private var trustTimer: Timer?
     private var permissionWindow: NSWindow?
@@ -20,12 +20,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
 
         tracker.onChange = { [weak self] field in
-            guard let self else { return }
-            if let field {
-                self.icon.show(for: field.visibleFrame)
-            } else {
-                self.icon.hide()
-            }
+            self?.controller.fieldChanged(field)
         }
 
         state.isTrusted = Permissions.isAccessibilityTrusted
@@ -87,7 +82,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard isTracking else { return }
         isTracking = false
         tracker.stop()
-        icon.hide()
+        controller.fieldChanged(nil)
     }
 
     @objc private func checkTrust() {

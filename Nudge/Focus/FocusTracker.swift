@@ -3,8 +3,12 @@ import ApplicationServices
 
 /// A focused text field that Nudge should show its icon next to.
 struct FocusedField: Equatable {
+    let element: AXUIElement
+    let pid: pid_t
     let appName: String
     let role: String
+    /// Browsers and Electron apps: write by pasting, not through Accessibility.
+    let prefersPaste: Bool
     /// The part of the field the user can see, in Accessibility coordinates
     /// (origin at the top-left of the primary screen).
     let visibleFrame: CGRect
@@ -25,6 +29,9 @@ final class FocusTracker: NSObject {
     private var appElement: AXUIElement?
     private var appName = ""
     private var bundleID: String?
+    private var pid: pid_t = 0
+    private var appIsElectron = false
+    private var focusedIsWeb = false
     private var focused: AXUIElement?
     private var focusedIsEditable = false
     private var focusedRole = ""
@@ -44,6 +51,9 @@ final class FocusTracker: NSObject {
         "org.chromium.Chromium", "com.brave.Browser", "com.microsoft.edgemac",
         "company.thebrowser.Browser", "com.vivaldi.Vivaldi", "com.operasoftware.Opera",
     ]
+    private static let browserBundleIDs: Set<String> = chromiumBundleIDs.union([
+        "com.apple.Safari", "com.apple.SafariTechnologyPreview", "org.mozilla.firefox",
+    ])
 
     func start() {
         NSWorkspace.shared.notificationCenter.addObserver(
@@ -75,9 +85,13 @@ final class FocusTracker: NSObject {
         report(nil)
         guard let app, app.processIdentifier != getpid() else { return }
 
-        let pid = app.processIdentifier
+        pid = app.processIdentifier
         appName = app.localizedName ?? app.bundleIdentifier ?? "pid \(pid)"
         bundleID = app.bundleIdentifier
+        appIsElectron = app.bundleURL.map {
+            FileManager.default.fileExists(
+                atPath: $0.appending(path: "Contents/Frameworks/Electron Framework.framework").path)
+        } ?? false
         let element = AXUIElementCreateApplication(pid)
         AXUIElementSetMessagingTimeout(element, 0.25)
         appElement = element
@@ -180,7 +194,7 @@ final class FocusTracker: NSObject {
         let (editable, reason) = classify(element, role: role, subrole: subrole)
         focusedRole = subrole.map { "\(role)/\($0)" } ?? role
         focusedIsEditable = editable
-        clipAncestors = editable ? findClipAncestors(of: element) : []
+        (clipAncestors, focusedIsWeb) = editable ? scanAncestors(of: element) : ([], false)
 
         let frameText = AX.frame(element).map(Self.describe) ?? "no frame"
         logOnce("\(appName) | \(focusedRole) | \(editable ? "text field" : "not a text field"): \(reason) | \(frameText)")
@@ -202,10 +216,12 @@ final class FocusTracker: NSObject {
         return (false, "role not editable")
     }
 
-    /// Scroll areas and the window bound what the user can see of a field.
-    /// A long TextEdit document, for example, is much taller than its window.
-    private func findClipAncestors(of element: AXUIElement) -> [AXUIElement] {
+    /// Finds the scroll areas and window that bound what the user can see of
+    /// a field (a long TextEdit document is much taller than its window), and
+    /// whether the field sits inside a web page.
+    private func scanAncestors(of element: AXUIElement) -> ([AXUIElement], Bool) {
         var result: [AXUIElement] = []
+        var isWeb = false
         var current = AX.element(element, kAXParentAttribute)
         var depth = 0
         while let node = current, depth < 40 {
@@ -213,11 +229,12 @@ final class FocusTracker: NSObject {
             if role == "AXScrollArea" || role == "AXWindow" {
                 result.append(node)
             }
+            if role == "AXWebArea" { isWeb = true }
             if role == "AXWindow" || role == "AXApplication" { break }
             current = AX.element(node, kAXParentAttribute)
             depth += 1
         }
-        return result
+        return (result, isWeb)
     }
 
     private func refreshFrame() {
@@ -233,7 +250,11 @@ final class FocusTracker: NSObject {
             report(nil)
             return
         }
-        report(FocusedField(appName: appName, role: focusedRole, visibleFrame: rect))
+        let isBrowser = bundleID.map(Self.browserBundleIDs.contains) ?? false
+        report(FocusedField(
+            element: focused, pid: pid, appName: appName, role: focusedRole,
+            prefersPaste: focusedIsWeb || appIsElectron || isBrowser,
+            visibleFrame: rect))
     }
 
     // MARK: - Output
