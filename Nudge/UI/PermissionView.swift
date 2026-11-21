@@ -17,7 +17,7 @@ struct PermissionView: View {
 
             Text("Nudge watches which text box you are typing in, so it can show its small icon next to it. macOS calls this Accessibility access.")
 
-            Text("In this version Nudge does not read what you type. Everything stays on your Mac. Nothing is stored or sent.")
+            Text("Nudge reads the text in a field only when you ask it to rewrite it. Everything stays on your Mac. Nothing is stored or sent.")
                 .foregroundStyle(.secondary)
 
             Button("Open System Settings", action: openSettings)

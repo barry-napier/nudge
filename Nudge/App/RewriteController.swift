@@ -264,6 +264,7 @@ final class RewriteController {
             finishWork()
             flash(.success)
             Log.shared.add("\(action.logName) | \(field.appName) | \(counts) | \(seconds) | no changes needed")
+            logText(before: captured.text, after: result, request: action)
             return
         }
 
@@ -281,6 +282,7 @@ final class RewriteController {
             finishWork()
             flash(.success)
             Log.shared.add("\(action.logName) | \(field.appName) | \(captured.mode.rawValue) | \(counts) | \(seconds) | wrote via \(method.rawValue) | \(check)")
+            logText(before: captured.text, after: result, request: action)
         } catch {
             finishWork()
             fail(error.localizedDescription, log: "\(action.logName) | \(field.appName) | write failed: \(error.localizedDescription)")
@@ -293,6 +295,19 @@ final class RewriteController {
         guard let value = AX.string(element, kAXValueAttribute) else { return "check: field unreadable" }
         let probe = result.trimmingCharacters(in: .whitespacesAndNewlines)
         return value.contains(probe) ? "check: new text is in the field" : "check: NEW TEXT NOT FOUND in field"
+    }
+
+    /// Testing aid. Writes the text itself to the local log, only when the
+    /// user has turned on "Log Text for Testing".
+    private func logText(before: String, after: String?, request: RewriteRequest) {
+        guard UserDefaults.standard.bool(forKey: AppState.logTextKey) else { return }
+        if let instruction = request.customInstruction {
+            Log.shared.add("    instruction: \(instruction.debugDescription)")
+        }
+        Log.shared.add("    before: \(before.debugDescription)")
+        if let after {
+            Log.shared.add("    after:  \(after.debugDescription)")
+        }
     }
 
     private func textIsUnchanged(_ captured: CapturedText, in element: AXUIElement) -> Bool {

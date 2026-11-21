@@ -13,6 +13,9 @@ struct MenuContent: View {
             Text("⏸️ Paused")
         } else {
             Text("🟢 Accessibility: on")
+            if state.logText {
+                Text("📝 Logging text for testing")
+            }
             if !state.keyboardReady {
                 Text("⚠️ Double-tap is not working. See Debug Log.")
             }
@@ -26,6 +29,12 @@ struct MenuContent: View {
         .onChange(of: state.trigger) { app.triggerChanged() }
         Button(state.isPaused ? "Resume" : "Pause") { app.togglePause() }
             .disabled(!state.isTrusted)
+        Toggle("Log Text for Testing", isOn: $state.logText)
+            .onChange(of: state.logText) {
+                Log.shared.add(state.logText
+                    ? "Text logging turned on. Rewrites now save their text to this log."
+                    : "Text logging turned off.")
+            }
         Button("Show Debug Log") { app.showDebugLog() }
         Divider()
         Button("Quit Nudge") { NSApp.terminate(nil) }

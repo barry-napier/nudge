@@ -1,7 +1,8 @@
 import AppKit
 import SwiftUI
 
-/// Shows what Nudge saw each time focus changed. Never shows typed text.
+/// Shows what Nudge saw and did. Typed text appears only when
+/// "Log Text for Testing" is on.
 struct DebugLogView: View {
     let log: Log
 

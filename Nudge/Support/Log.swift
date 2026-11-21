@@ -10,7 +10,7 @@ struct LogLine: Identifiable, Sendable {
 
 /// In-memory debug log shown in the Debug Log window, mirrored to
 /// ~/Library/Logs/Nudge/nudge.log and the unified system log.
-/// It never records what the user types.
+/// It records what the user wrote only when "Log Text for Testing" is on.
 @MainActor
 @Observable
 final class Log {
@@ -46,8 +46,10 @@ final class Log {
         appendToFile(text + "\n")
     }
 
+    /// Clears the window and deletes the log file, including any logged text.
     func clear() {
         lines.removeAll()
+        try? FileManager.default.removeItem(at: fileURL)
     }
 
     var allText: String {

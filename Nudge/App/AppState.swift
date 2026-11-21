@@ -10,6 +10,13 @@ final class AppState {
     /// False when macOS would not let Nudge watch the keyboard.
     var keyboardReady = true
 
+    /// Testing aid: also write the before and after text of each rewrite to
+    /// the local debug log. Off by default.
+    var logText = UserDefaults.standard.bool(forKey: AppState.logTextKey) {
+        didSet { UserDefaults.standard.set(logText, forKey: AppState.logTextKey) }
+    }
+    nonisolated static let logTextKey = "logTextForTesting"
+
     var trigger: TriggerKey = TriggerKey(
         rawValue: UserDefaults.standard.string(forKey: "triggerKey") ?? "") ?? .rightOption
     {
