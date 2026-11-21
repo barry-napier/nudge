@@ -14,6 +14,8 @@ final class SelfTest {
     static let notification = Notification.Name("com.barrynapier.nudge.selftest")
 
     private let controller: RewriteController
+    /// Applies off-list changes, as the menu does.
+    var onOffListChanged: (() -> Void)?
     private var isRunning = false
     private var failures = 0
     /// The test's own document. The test never writes anywhere else.
@@ -77,7 +79,19 @@ final class SelfTest {
         check(TextAccess.looselyEqual(restored, Self.sentence), "undo restores the original text")
         await expectLatestOutcome(.undone, "undo")
 
-        // 4. Learning pass on made-up edits that drop exclamation marks.
+        // 4. Off list: turning Nudge off in TextEdit hides it there, and
+        //    turning it back on brings it back.
+        ProfileStore.shared.profile.offApps["com.apple.TextEdit"] = "TextEdit"
+        onOffListChanged?()
+        await waitUntil(seconds: 3) { self.controller.testField == nil }
+        check(controller.testField == nil, "turned off in TextEdit: no icon, nothing focused")
+        check(!controller.testRun(.preset(.improve), on: element), "turned off in TextEdit: actions refuse to run")
+        ProfileStore.shared.profile.offApps["com.apple.TextEdit"] = nil
+        onOffListChanged?()
+        await waitUntil(seconds: 3) { self.isTestDocument(self.controller.testField?.element) }
+        check(isTestDocument(controller.testField?.element), "turned back on in TextEdit: icon is back")
+
+        // 5. Learning pass on made-up edits that drop exclamation marks.
         let beforeLearning = OutcomeStore.shared.latestID()
         for index in 0..<6 {
             OutcomeStore.shared.insert(Outcome(

@@ -24,6 +24,20 @@ struct MenuContent: View {
             }
         }
         Divider()
+        if let current = state.currentApp {
+            let isOff = profile.profile.offApps[current.bundleID] != nil
+            Button(isOff ? "Turn On in \(current.name)" : "Turn Off in \(current.name)") {
+                app.setOff(!isOff, app: current)
+            }
+        }
+        if let site = state.currentSite {
+            let isOff = profile.profile.offSites.contains(site)
+            Button(isOff ? "Turn On on \(site)" : "Turn Off on \(site)") {
+                app.setOff(!isOff, site: site)
+            }
+        }
+        Button("Where Nudge Is Off…") { app.showOffList() }
+        Divider()
         Picker("Double-tap Key", selection: $state.trigger) {
             ForEach(TriggerKey.allCases) { key in
                 Text(key.title).tag(key)

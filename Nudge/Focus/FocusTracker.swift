@@ -27,6 +27,8 @@ struct FocusedField: Equatable {
 final class FocusTracker: NSObject {
     /// Called with the field to decorate, or nil to hide the icon.
     var onChange: ((FocusedField?) -> Void)?
+    /// True for an app (bundle ID) or website (host) where Nudge is turned off.
+    var isOff: ((String?, String?) -> Bool)?
 
     private var observer: AXObserver?
     private var appElement: AXUIElement?
@@ -69,6 +71,13 @@ final class FocusTracker: NSObject {
         attach(to: NSWorkspace.shared.frontmostApplication)
     }
 
+    /// Looks at the frontmost app again, for example after the off list changed.
+    func refresh() {
+        guard timer != nil else { return }
+        lastLogLine = ""
+        attach(to: NSWorkspace.shared.frontmostApplication)
+    }
+
     func stop() {
         NSWorkspace.shared.notificationCenter.removeObserver(self)
         timer?.invalidate()
@@ -96,6 +105,11 @@ final class FocusTracker: NSObject {
             FileManager.default.fileExists(
                 atPath: $0.appending(path: "Contents/Frameworks/Electron Framework.framework").path)
         } ?? false
+        // Turned off in this app: don't watch it at all.
+        if isOff?(bundleID, nil) == true {
+            logOnce("\(appName) | Nudge is off in this app")
+            return
+        }
         let element = AXUIElementCreateApplication(pid)
         AXUIElementSetMessagingTimeout(element, 0.25)
         appElement = element
@@ -257,6 +271,12 @@ final class FocusTracker: NSObject {
             rect = rect.intersection(clip)
         }
         guard !rect.isNull, rect.width >= 8, rect.height >= 8 else {
+            report(nil)
+            return
+        }
+        // Turned off on this website: hide everything.
+        if isOff?(bundleID, focusedSite) == true {
+            logOnce("\(appName) | Nudge is off on \(focusedSite ?? "this site")")
             report(nil)
             return
         }

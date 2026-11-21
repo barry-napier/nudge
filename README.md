@@ -40,6 +40,11 @@ on.
 The ✦ in the menu bar has your writer profile, what Nudge learned, and
 settings. Right Control works as the trigger too.
 
+To turn Nudge off somewhere, open the ✦ menu while you're in that app and
+choose **Turn Off in [app]**, or **Turn Off on [website]** in a browser.
+**Where Nudge Is Off…** lists them all. Where Nudge is off, it shows nothing,
+ignores the double-tap, and reads nothing. A website covers its subdomains too.
+
 ## Privacy
 
 - Text is rewritten by Apple's on-device model. It is never sent anywhere.

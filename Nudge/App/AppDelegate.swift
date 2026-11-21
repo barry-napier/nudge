@@ -15,6 +15,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var profileWindow: NSWindow?
     private var learningWindow: NSWindow?
     private var welcomeWindow: NSWindow?
+    private var offListWindow: NSWindow?
 
     /// Sparkle checks GitHub for new versions. Off in debug builds, which
     /// are not signed for release.
@@ -45,12 +46,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         #if DEBUG
         selfTest = SelfTest(controller: controller)
+        selfTest?.onOffListChanged = { [weak self] in self?.offListChanged() }
         #endif
         controller.outcomes.onOutcome = { outcome in
             OutcomeStore.shared.insert(outcome)
             Learner.considerRunning()
         }
+        tracker.isOff = { bundleID, site in
+            ProfileStore.shared.profile.isOff(bundleID: bundleID, site: site)
+        }
+        NSWorkspace.shared.notificationCenter.addObserver(
+            self, selector: #selector(appActivated(_:)),
+            name: NSWorkspace.didActivateApplicationNotification, object: nil)
+        noteCurrentApp(NSWorkspace.shared.frontmostApplication)
         tracker.onChange = { [weak self] field in
+            if let field { self?.state.currentSite = field.site }
             self?.controller.fieldChanged(field)
         }
 
@@ -85,6 +95,48 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         } else {
             startTracking()
         }
+    }
+
+    // MARK: - Where Nudge is off
+
+    @objc private func appActivated(_ note: Notification) {
+        noteCurrentApp(note.userInfo?[NSWorkspace.applicationUserInfoKey] as? NSRunningApplication)
+    }
+
+    private func noteCurrentApp(_ app: NSRunningApplication?) {
+        guard let app, let id = app.bundleIdentifier, id != Bundle.main.bundleIdentifier else { return }
+        if state.currentApp?.bundleID != id { state.currentSite = nil }
+        state.currentApp = (id, app.localizedName ?? id)
+    }
+
+    func setOff(_ off: Bool, app: (bundleID: String, name: String)) {
+        ProfileStore.shared.profile.offApps[app.bundleID] = off ? app.name : nil
+        Log.shared.add("Nudge turned \(off ? "off" : "on") in \(app.name)")
+        offListChanged()
+    }
+
+    func setOff(_ off: Bool, site: String) {
+        var sites = ProfileStore.shared.profile.offSites
+        sites.removeAll { $0 == site }
+        if off { sites.append(site) }
+        ProfileStore.shared.profile.offSites = sites
+        Log.shared.add("Nudge turned \(off ? "off" : "on") on \(site)")
+        offListChanged()
+    }
+
+    /// Applies a change to the off list straight away.
+    func offListChanged() {
+        controller.fieldChanged(nil)
+        tracker.refresh()
+    }
+
+    func showOffList() {
+        if offListWindow == nil {
+            offListWindow = Windows.make(
+                title: "Where Nudge Is Off", size: NSSize(width: 460, height: 440),
+                content: OffListView(store: ProfileStore.shared) { [weak self] in self?.offListChanged() })
+        }
+        Windows.present(offListWindow!)
     }
 
     func triggerChanged() {

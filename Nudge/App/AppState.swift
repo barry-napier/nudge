@@ -7,6 +7,11 @@ import Observation
 final class AppState {
     var isTrusted = false
     var isPaused = false
+    /// The app the writer is in, for the menu's Turn Off items.
+    var currentApp: (bundleID: String, name: String)?
+    /// The website of the focused field, if it is in a web page.
+    var currentSite: String?
+
     /// False when macOS would not let Nudge watch the keyboard.
     var keyboardReady = true
 

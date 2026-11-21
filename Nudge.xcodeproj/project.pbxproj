@@ -42,6 +42,7 @@
 		EC0EC31B4CF4C03F44FD7305 /* NudgeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 204210CCFF75D149E024D904 /* NudgeApp.swift */; };
 		EFA09A06F2C0A8B9EAADBD25 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD61E0B5184F594FAACB7628 /* AppDelegate.swift */; };
 		F1AC9CCD0642592DB3A36489 /* Rewriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E45935F08E4F1C2F1656590 /* Rewriter.swift */; };
+		F6031C570448685B76275C7C /* OffListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 85EF69F18207A5E12D316EA4 /* OffListView.swift */; };
 		FB2F51C6C000F6641CC36D7F /* OutcomeStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9D7169C85C70DEE71B98A59F /* OutcomeStore.swift */; };
 /* End PBXBuildFile section */
 
@@ -61,6 +62,7 @@
 		625E8C4E56C7F4E0606E0063 /* Permissions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Permissions.swift; sourceTree = "<group>"; };
 		7E45935F08E4F1C2F1656590 /* Rewriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rewriter.swift; sourceTree = "<group>"; };
 		82285C28EFF0F386E407FB78 /* MenuContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuContent.swift; sourceTree = "<group>"; };
+		85EF69F18207A5E12D316EA4 /* OffListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OffListView.swift; sourceTree = "<group>"; };
 		8F4E2F4EEF209D3DDD9CA77A /* Windows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Windows.swift; sourceTree = "<group>"; };
 		935F00CB6C3DE7EB0C4C0183 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		93B0C12EF25DD601A6F36D27 /* ActionPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionPopover.swift; sourceTree = "<group>"; };
@@ -174,6 +176,7 @@
 				F2AD750BA2DD8F0DB44CC6E2 /* DebugLogView.swift */,
 				0DE0BC09CEBEF63309309797 /* IconPanel.swift */,
 				B8B470BF3E549C4880170565 /* LearningView.swift */,
+				85EF69F18207A5E12D316EA4 /* OffListView.swift */,
 				0083A8A3DD6133345D111261 /* OnboardingView.swift */,
 				24CED4251778C3E7A52CB30C /* PermissionView.swift */,
 				935F00CB6C3DE7EB0C4C0183 /* ProfileView.swift */,
@@ -327,6 +330,7 @@
 				E16408030152C9BB62C19794 /* Log.swift in Sources */,
 				4AA49D2CBD6353EEB1177CEC /* MenuContent.swift in Sources */,
 				EC0EC31B4CF4C03F44FD7305 /* NudgeApp.swift in Sources */,
+				F6031C570448685B76275C7C /* OffListView.swift in Sources */,
 				D34FF6F52BE658C4F49F288D /* OnboardingView.swift in Sources */,
 				FB2F51C6C000F6641CC36D7F /* OutcomeStore.swift in Sources */,
 				7473164185C842BBF5584E41 /* OutcomeWatcher.swift in Sources */,

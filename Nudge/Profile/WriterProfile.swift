@@ -139,10 +139,22 @@ struct WriterProfile: Codable, Equatable, Sendable {
     /// Apps Nudge never learns from, by bundle ID, with their names.
     var learningExcluded: [String: String] = [:]
     var lastLearnedAt: Date?
+    /// Apps where Nudge is fully off, by bundle ID, with their names.
+    var offApps: [String: String] = [:]
+    /// Websites where Nudge is fully off, by host name. Subdomains count too.
+    var offSites: [String] = []
 
     enum CodingKeys: String, CodingKey {
         case name, role, tone, formality, language, preferredPhrases, signOffs, avoidWords, samples
         case voices, hasCompletedOnboarding, learnedRules, learningEnabled, learningExcluded, lastLearnedAt
+        case offApps, offSites
+    }
+
+    /// True where Nudge should do nothing at all: no icon, no menu, no reading.
+    func isOff(bundleID: String?, site: String?) -> Bool {
+        if let bundleID, offApps[bundleID] != nil { return true }
+        if let site, offSites.contains(where: { Self.host(site, matches: $0) }) { return true }
+        return false
     }
 
     init() {}
@@ -166,6 +178,8 @@ struct WriterProfile: Codable, Equatable, Sendable {
         learningEnabled = try c.decodeIfPresent(Bool.self, forKey: .learningEnabled) ?? d.learningEnabled
         learningExcluded = try c.decodeIfPresent([String: String].self, forKey: .learningExcluded) ?? d.learningExcluded
         lastLearnedAt = try c.decodeIfPresent(Date.self, forKey: .lastLearnedAt)
+        offApps = try c.decodeIfPresent([String: String].self, forKey: .offApps) ?? d.offApps
+        offSites = try c.decodeIfPresent([String].self, forKey: .offSites) ?? d.offSites
     }
 
     /// The most words of profile Nudge sends with each rewrite. The on-device
@@ -185,7 +199,7 @@ struct WriterProfile: Codable, Equatable, Sendable {
         return tone == .none ? nil : (tone, "default")
     }
 
-    private static func host(_ host: String, matches key: String) -> Bool {
+    static func host(_ host: String, matches key: String) -> Bool {
         let host = host.lowercased()
         let key = key.lowercased()
         return host == key || host.hasSuffix("." + key)
