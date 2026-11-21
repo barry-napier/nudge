@@ -12,6 +12,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var logWindow: NSWindow?
     private var profileWindow: NSWindow?
     private var onboardingWindow: NSWindow?
+    private var learningWindow: NSWindow?
+    #if DEBUG
+    private var selfTest: SelfTest?
+    #endif
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "?"
@@ -21,6 +25,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
             Log.shared.add("Warning: not running from /Applications. Use scripts/build.sh so permissions stick.")
         }
 
+        #if DEBUG
+        selfTest = SelfTest(controller: controller)
+        #endif
+        controller.outcomes.onOutcome = { outcome in
+            OutcomeStore.shared.insert(outcome)
+            Learner.considerRunning()
+        }
         tracker.onChange = { [weak self] field in
             self?.controller.fieldChanged(field)
         }
@@ -78,6 +89,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Windows.present(profileWindow!)
     }
 
+    func showLearningWindow() {
+        if learningWindow == nil {
+            learningWindow = Windows.make(
+                title: "What Nudge Learned", size: NSSize(width: 560, height: 640),
+                content: LearningView(store: ProfileStore.shared))
+        }
+        Windows.present(learningWindow!)
+    }
+
     private func showOnboardingIfNeeded() {
         guard !ProfileStore.shared.profile.hasCompletedOnboarding else { return }
         if onboardingWindow == nil {
@@ -118,6 +138,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         isTracking = false
         tracker.stop()
         controller.keys.stop()
+        controller.outcomes.stop()
         controller.fieldChanged(nil)
     }
 

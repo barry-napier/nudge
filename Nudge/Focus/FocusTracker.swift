@@ -214,7 +214,9 @@ final class FocusTracker: NSObject {
             return valueSettable ? (true, "editable") : (false, "read-only")
         }
         // Rich text editors on web pages (contenteditable) often use other roles.
-        if valueSettable, AX.hasAttribute(element, kAXSelectedTextRangeAttribute) {
+        // Their value must be text: switches and sliders have settable number values.
+        if valueSettable, AX.hasAttribute(element, kAXSelectedTextRangeAttribute),
+           AX.string(element, kAXValueAttribute) != nil {
             return (true, "editable content")
         }
         return (false, "role not editable")

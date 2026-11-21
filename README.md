@@ -3,11 +3,12 @@
 A private, on-device writing helper for macOS. Nudge shows a small icon next to
 the text field you are typing in, in any app. Nothing leaves your Mac.
 
-Status: **Stage 4**. Double-tap right Option (or click the icon) to open a menu,
+Status: **Stage 5**. Double-tap right Option (or click the icon) to open a menu,
 pick a rewrite with the arrow keys or 1 to 8, and Apple's on-device model
 rewrites the text in place, with Undo. A local writer profile (tone, UK or US
 spelling, banned words, samples, per-app and per-site voices) makes rewrites
-sound like you.
+sound like you. Nudge also learns from what you keep, edit and undo, and
+suggests style rules you can keep or dismiss.
 
 ## Requirements
 
@@ -43,3 +44,16 @@ Security > Accessibility with the minus button, then relaunch it. Last resort:
 ```sh
 tccutil reset Accessibility com.barrynapier.nudge
 ```
+
+## Self-test (debug builds only)
+
+```sh
+./scripts/selftest.sh
+```
+
+Opens its own TextEdit file, then rewrites, edits and undoes text with
+Nudge's Accessibility permission, checks what Nudge recorded, runs a learning
+pass, and cleans up. It only ever touches its own file: every step checks the
+target at the moment it acts, and stops if focus is anywhere else. Please
+don't type while it runs.
+

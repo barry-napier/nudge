@@ -9,9 +9,10 @@ final class RewriteController {
     private let icon = IconPanel()
     private let popover = ActionPopover()
     let keys = KeyboardTap()
+    let outcomes = OutcomeWatcher()
 
-    private var field: FocusedField?
-    private var work: Task<Void, Never>?
+    fileprivate(set) var field: FocusedField?
+    fileprivate(set) var work: Task<Void, Never>?
     private var undo: UndoRecord?
     private var mouseMonitor: Any?
     private var feedbackReset: Task<Void, Never>?
@@ -48,6 +49,7 @@ final class RewriteController {
     func fieldChanged(_ newField: FocusedField?) {
         let sameElement = newField?.element == field?.element
         field = newField
+        if !sameElement { outcomes.focusChanged(to: newField?.element) }
         guard let newField else {
             icon.hide()
             closePopover()
@@ -200,7 +202,7 @@ final class RewriteController {
         let profile = ProfileStore.shared.profile
         var request = request
         let voice = profile.voice(bundleID: field.bundleID, site: field.site)
-        request.profileSummary = profile.summary(for: request.action, tone: voice?.tone)
+        request.profileSummary = profile.summary(for: request.action, tone: voice?.tone, bundleID: field.bundleID)
         request.avoidWords = WriterProfile.clean(profile.avoidWords)
         request.signOffWords = profile.signOffWords
         let usesVoice = request.action.map { [.concise, .improve].contains($0) } ?? false
@@ -217,6 +219,7 @@ final class RewriteController {
             return
         }
         let action = withProfile(baseRequest, for: field)
+        outcomes.rerun(on: field.element, as: action.logName)
         Log.shared.add("Action chosen | \(action.logName)\(action.voiceSource.map { " | voice: \($0)" } ?? "")")
         closePopover()
         guard let captured = TextAccess.capture(from: field.element) else {
@@ -295,7 +298,8 @@ final class RewriteController {
                 element: field.element, appName: field.appName, mode: captured.mode,
                 original: captured.text, replacement: result, location: captured.range?.location,
                 prefersPaste: field.prefersPaste, date: Date())
-            let check = await confirmation(of: result, in: field.element, method: method)
+            let (check, afterWrite) = await confirmation(of: result, in: field.element, method: method)
+            startWatching(field: field, request: action, captured: captured, result: result, afterWrite: afterWrite)
             finishWork()
             flash(.success)
             Log.shared.add("\(action.logName) | \(field.appName) | \(captured.mode.rawValue) | \(counts) | \(seconds) | wrote via \(method.rawValue) | \(check)")
@@ -307,11 +311,34 @@ final class RewriteController {
     }
 
     /// Reads the field back after a write, for the debug log only.
-    private func confirmation(of result: String, in element: AXUIElement, method: WriteMethod) async -> String {
+    private func confirmation(of result: String, in element: AXUIElement, method: WriteMethod) async -> (String, String?) {
         if method == .paste { await pause(milliseconds: 150) }
-        guard let value = AX.string(element, kAXValueAttribute) else { return "check: field unreadable" }
-        let probe = result.trimmingCharacters(in: .whitespacesAndNewlines)
-        return value.contains(probe) ? "check: new text is in the field" : "check: NEW TEXT NOT FOUND in field"
+        guard let value = AX.string(element, kAXValueAttribute) else { return ("check: field unreadable", nil) }
+        let found = TextAccess.looselyContains(value, result)
+        return (found ? "check: new text is in the field" : "check: NEW TEXT NOT FOUND in field", value)
+    }
+
+    /// Starts watching what the writer does with this rewrite, for learning.
+    private func startWatching(
+        field: FocusedField, request: RewriteRequest, captured: CapturedText, result: String, afterWrite: String?
+    ) {
+        let profile = ProfileStore.shared.profile
+        guard profile.learningEnabled, let bundleID = field.bundleID,
+              profile.learningExcluded[bundleID] == nil else { return }
+        let location: Int
+        if captured.mode == .whole {
+            location = 0
+        } else if let range = captured.range {
+            location = range.location
+        } else if let afterWrite, let found = (afterWrite as NSString).range(of: result).toOptional {
+            location = found.location
+        } else {
+            location = 0
+        }
+        outcomes.began(OutcomeWatcher.Watch(
+            element: field.element, bundleID: bundleID, appName: field.appName, site: field.site,
+            action: request.logName, voice: request.voiceSource, original: captured.text, rewrite: result,
+            afterWrite: afterWrite, location: location, started: Date()))
     }
 
     /// Testing aid. Writes the text itself to the local log, only when the
@@ -365,7 +392,8 @@ final class RewriteController {
 
         switch record.mode {
         case .whole:
-            guard value == nil || value == record.replacement else {
+            // Loose match: some fields store line breaks differently from how they were written.
+            guard value == nil || TextAccess.looselyEqual(value!, record.replacement) else {
                 fail("The text has changed since the rewrite, so Nudge cannot undo it safely. Try Command-Z.",
                      log: "Undo | \(record.appName) | text changed, not undone")
                 return
@@ -392,6 +420,7 @@ final class RewriteController {
                 self?.finishWork()
                 self?.flash(.success)
                 Log.shared.add("Undo | \(record.appName) | restored original via \(method.rawValue)")
+                self?.outcomes.undone()
             } catch {
                 self?.finishWork()
                 self?.fail(error.localizedDescription, log: "Undo | \(record.appName) | failed: \(error.localizedDescription)")
@@ -421,3 +450,32 @@ final class RewriteController {
         }
     }
 }
+
+private extension NSRange {
+    var toOptional: NSRange? { location == NSNotFound ? nil : self }
+}
+
+#if DEBUG
+/// Hooks for the built-in self-test. Not in release builds.
+extension RewriteController {
+    var testField: FocusedField? { field }
+    var testIsBusy: Bool { work != nil }
+    /// Runs only if Nudge's focused field is exactly `element`, checked in
+    /// the same step as the run starts, so focus cannot move in between.
+    @discardableResult
+    func testRun(_ request: RewriteRequest, on element: AXUIElement) -> Bool {
+        guard let field, field.element == element,
+              AX.focusedElement(pid: field.pid) == element else { return false }
+        run(request)
+        return true
+    }
+
+    @discardableResult
+    func testUndo(on element: AXUIElement) -> Bool {
+        guard let field, field.element == element,
+              AX.focusedElement(pid: field.pid) == element else { return false }
+        performUndo()
+        return true
+    }
+}
+#endif

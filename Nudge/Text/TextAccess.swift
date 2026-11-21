@@ -43,6 +43,24 @@ enum TextAccess {
         return ns.substring(with: NSRange(location: range.location, length: range.length))
     }
 
+    /// True if `needle` appears in `text`, ignoring differences in spaces and
+    /// line breaks. Web and Electron fields often store line breaks differently.
+    static func looselyContains(_ text: String, _ needle: String) -> Bool {
+        let flat = { (s: String) in
+            s.split(whereSeparator: { $0.isWhitespace || $0.isNewline }).joined(separator: " ")
+        }
+        let target = flat(needle)
+        return !target.isEmpty && flat(text).contains(target)
+    }
+
+    /// Equal, ignoring differences in spaces and line breaks.
+    static func looselyEqual(_ a: String, _ b: String) -> Bool {
+        let flat = { (s: String) in
+            s.split(whereSeparator: { $0.isWhitespace || $0.isNewline }).joined(separator: " ")
+        }
+        return flat(a) == flat(b)
+    }
+
     static func utf16Length(_ text: String) -> Int {
         (text as NSString).length
     }

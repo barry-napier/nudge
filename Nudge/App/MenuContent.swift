@@ -4,6 +4,7 @@ import SwiftUI
 struct MenuContent: View {
     @Bindable var state: AppState
     let app: AppDelegate
+    private let profile = ProfileStore.shared
 
     var body: some View {
         if !state.isTrusted {
@@ -29,7 +30,12 @@ struct MenuContent: View {
         .onChange(of: state.trigger) { app.triggerChanged() }
         Button(state.isPaused ? "Resume" : "Pause") { app.togglePause() }
             .disabled(!state.isTrusted)
+        let suggestions = profile.profile.learnedRules.filter { $0.status == .proposed }.count
+        if suggestions > 0 {
+            Button("💡 \(suggestions) suggestion\(suggestions == 1 ? "" : "s") to review…") { app.showLearningWindow() }
+        }
         Button("Writer Profile…") { app.showProfileWindow() }
+        Button("What Nudge Learned…") { app.showLearningWindow() }
         Toggle("Log Text for Testing", isOn: $state.logText)
             .onChange(of: state.logText) {
                 Log.shared.add(state.logText

@@ -94,6 +94,32 @@ struct Voice: Codable, Identifiable, Hashable, Sendable {
     var tone: Tone
 }
 
+/// A style rule Nudge learned from what the writer kept, edited and undid.
+struct LearnedRule: Codable, Identifiable, Hashable, Sendable {
+    enum Status: String, Codable, Sendable {
+        /// Waiting for the writer to keep or dismiss it.
+        case proposed
+        /// Kept by the writer. Used in rewrites.
+        case active
+        /// Dismissed. Kept only so it is never suggested again.
+        case dismissed
+    }
+
+    var id = UUID()
+    var text: String
+    /// nil for every app. Otherwise the app's bundle ID.
+    var bundleID: String?
+    var appName: String?
+    var status: Status = .proposed
+    /// How many outcomes back this rule. Weaker rules are dropped first.
+    var evidence: Int
+    var created = Date()
+    /// For a voice suggestion: the tone to set for this app when kept.
+    var suggestedTone: Tone?
+
+    var scopeTitle: String { appName.map { "In \($0)" } ?? "Everywhere" }
+}
+
 /// Everything Nudge knows about how the user writes.
 /// Stored only on this Mac, in Application Support. Never sent anywhere.
 struct WriterProfile: Codable, Equatable, Sendable {
@@ -108,6 +134,39 @@ struct WriterProfile: Codable, Equatable, Sendable {
     var samples: [String] = []
     var voices: [Voice] = []
     var hasCompletedOnboarding = false
+    var learnedRules: [LearnedRule] = []
+    var learningEnabled = true
+    /// Apps Nudge never learns from, by bundle ID, with their names.
+    var learningExcluded: [String: String] = [:]
+    var lastLearnedAt: Date?
+
+    enum CodingKeys: String, CodingKey {
+        case name, role, tone, formality, language, preferredPhrases, signOffs, avoidWords, samples
+        case voices, hasCompletedOnboarding, learnedRules, learningEnabled, learningExcluded, lastLearnedAt
+    }
+
+    init() {}
+
+    /// Reads older profile files too: anything missing keeps its default.
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        let d = WriterProfile()
+        name = try c.decodeIfPresent(String.self, forKey: .name) ?? d.name
+        role = try c.decodeIfPresent(String.self, forKey: .role) ?? d.role
+        tone = try c.decodeIfPresent(Tone.self, forKey: .tone) ?? d.tone
+        formality = try c.decodeIfPresent(Formality.self, forKey: .formality) ?? d.formality
+        language = try c.decodeIfPresent(EnglishVariant.self, forKey: .language) ?? d.language
+        preferredPhrases = try c.decodeIfPresent([String].self, forKey: .preferredPhrases) ?? d.preferredPhrases
+        signOffs = try c.decodeIfPresent([String].self, forKey: .signOffs) ?? d.signOffs
+        avoidWords = try c.decodeIfPresent([String].self, forKey: .avoidWords) ?? d.avoidWords
+        samples = try c.decodeIfPresent([String].self, forKey: .samples) ?? d.samples
+        voices = try c.decodeIfPresent([Voice].self, forKey: .voices) ?? d.voices
+        hasCompletedOnboarding = try c.decodeIfPresent(Bool.self, forKey: .hasCompletedOnboarding) ?? d.hasCompletedOnboarding
+        learnedRules = try c.decodeIfPresent([LearnedRule].self, forKey: .learnedRules) ?? d.learnedRules
+        learningEnabled = try c.decodeIfPresent(Bool.self, forKey: .learningEnabled) ?? d.learningEnabled
+        learningExcluded = try c.decodeIfPresent([String: String].self, forKey: .learningExcluded) ?? d.learningExcluded
+        lastLearnedAt = try c.decodeIfPresent(Date.self, forKey: .lastLearnedAt)
+    }
 
     /// The most words of profile Nudge sends with each rewrite. The on-device
     /// model has a small context window.
@@ -136,7 +195,7 @@ struct WriterProfile: Codable, Equatable, Sendable {
     /// - Parameters:
     ///   - action: nil for a custom instruction.
     ///   - tone: the voice for this field, used only by actions that have no tone of their own.
-    func summary(for action: RewriteAction?, tone: Tone?) -> String? {
+    func summary(for action: RewriteAction?, tone: Tone?, bundleID: String? = nil) -> String? {
         var required: [String] = []
         var optional: [String] = []
 
@@ -165,6 +224,12 @@ struct WriterProfile: Codable, Equatable, Sendable {
         if !avoid.isEmpty {
             required.append("- Never use these words or phrases: \(avoid.joined(separator: ", ")).")
         }
+        // Learned rules come next, strongest first, so the weakest are dropped first.
+        let rules = learnedRules
+            .filter { $0.status == .active && $0.suggestedTone == nil && ($0.bundleID == nil || $0.bundleID == bundleID) }
+            .sorted { ($0.evidence, $0.created) > ($1.evidence, $1.created) }
+        let learned = rules.map { "- Learned: \($0.text.trimmingCharacters(in: CharacterSet(charactersIn: ". ")))." }
+        // Learned rules go before the optional lines, which are dropped before them.
         let phrases = Self.clean(preferredPhrases)
         if !phrases.isEmpty {
             optional.append("- Phrases they like, to use only where they fit naturally: \(phrases.joined(separator: ", ")).")
@@ -178,8 +243,8 @@ struct WriterProfile: Codable, Equatable, Sendable {
             optional.append("- Example of how they write (match the voice only, never copy the content): \"\(short)\"")
         }
 
-        // Keep within the word limit by dropping the least important lines last-in first-out.
-        var lines = required + optional
+        // Keep within the word limit: drop samples and phrases first, then the weakest rules.
+        var lines = required + learned + optional
         while Self.wordCount(lines) > Self.summaryWordLimit, lines.count > required.count {
             lines.removeLast()
         }
