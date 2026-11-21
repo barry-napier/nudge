@@ -1,0 +1,6 @@
+build/
+DerivedData/
+Config/Local.xcconfig
+xcuserdata/
+*.xcuserstate
+.DS_Store
