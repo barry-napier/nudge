@@ -39,6 +39,7 @@ struct MenuContent: View {
         Button("Writer Profile…") { app.showProfileWindow() }
         Button("What Nudge Learned…") { app.showLearningWindow() }
         #if DEBUG
+        Button("Show Welcome Again") { app.showWelcomeAgain() }
         Toggle("Log Text for Testing", isOn: $state.logText)
             .onChange(of: state.logText) {
                 Log.shared.add(state.logText

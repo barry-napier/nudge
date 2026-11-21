@@ -128,6 +128,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         updater.checkForUpdates(nil)
     }
 
+    #if DEBUG
+    /// Testing aid: replays the first-run walk-through from the start.
+    func showWelcomeAgain() {
+        UserDefaults.standard.set(WelcomeView.Step.hello.rawValue, forKey: Self.welcomeStepKey)
+        showWelcome()
+    }
+    #endif
+
     private func showWelcome() {
         let stepBinding = Binding<WelcomeView.Step>(
             get: { WelcomeView.Step(rawValue: UserDefaults.standard.integer(forKey: Self.welcomeStepKey)) ?? .hello },
