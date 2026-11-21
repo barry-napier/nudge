@@ -91,7 +91,7 @@ struct RewriteRequest: Sendable {
     }
 
     static func custom(_ instruction: String) -> RewriteRequest {
-        RewriteRequest(logName: "Custom", temperature: 0.6, action: nil, customInstruction: instruction)
+        RewriteRequest(logName: "Custom", temperature: 0.7, action: nil, customInstruction: instruction)
     }
 
     func instruction(for text: String) -> String {
