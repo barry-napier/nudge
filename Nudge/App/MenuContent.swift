@@ -14,9 +14,11 @@ struct MenuContent: View {
             Text("⏸️ Paused")
         } else {
             Text("🟢 Accessibility: on")
+            #if DEBUG
             if state.logText {
                 Text("📝 Logging text for testing")
             }
+            #endif
             if !state.keyboardReady {
                 Text("⚠️ Double-tap is not working. See Debug Log.")
             }
@@ -36,13 +38,17 @@ struct MenuContent: View {
         }
         Button("Writer Profile…") { app.showProfileWindow() }
         Button("What Nudge Learned…") { app.showLearningWindow() }
+        #if DEBUG
         Toggle("Log Text for Testing", isOn: $state.logText)
             .onChange(of: state.logText) {
                 Log.shared.add(state.logText
                     ? "Text logging turned on. Rewrites now save their text to this log."
                     : "Text logging turned off.")
             }
+        #endif
         Button("Show Debug Log") { app.showDebugLog() }
+        Button("Check for Updates…") { app.checkForUpdates() }
+            .disabled(!app.canCheckForUpdates)
         Divider()
         Button("Quit Nudge") { NSApp.terminate(nil) }
             .keyboardShortcut("q")

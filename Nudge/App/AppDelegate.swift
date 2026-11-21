@@ -1,4 +1,6 @@
 import AppKit
+import Sparkle
+import SwiftUI
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
@@ -11,8 +13,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var permissionWindow: NSWindow?
     private var logWindow: NSWindow?
     private var profileWindow: NSWindow?
-    private var onboardingWindow: NSWindow?
     private var learningWindow: NSWindow?
+    private var welcomeWindow: NSWindow?
+
+    /// Sparkle checks GitHub for new versions. Off in debug builds, which
+    /// are not signed for release.
+    private let updater = SPUStandardUpdaterController(
+        startingUpdater: AppDelegate.isReleaseBuild, updaterDelegate: nil, userDriverDelegate: nil)
+
+    private static var isReleaseBuild: Bool {
+        #if DEBUG
+        false
+        #else
+        true
+        #endif
+    }
+
+    private static let welcomeDoneKey = "welcomeDone"
+    private static let welcomeStepKey = "welcomeStep"
     #if DEBUG
     private var selfTest: SelfTest?
     #endif
@@ -38,10 +56,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         state.isTrusted = Permissions.isAccessibilityTrusted
         Log.shared.add("Accessibility: \(state.isTrusted ? "on" : "not on")")
+        // People who set Nudge up before the walk-through existed skip it.
+        if ProfileStore.shared.profile.hasCompletedOnboarding {
+            UserDefaults.standard.set(true, forKey: Self.welcomeDoneKey)
+        }
         if state.isTrusted {
             startTracking()
-            showOnboardingIfNeeded()
-        } else {
+        }
+        if !UserDefaults.standard.bool(forKey: Self.welcomeDoneKey) {
+            showWelcome()
+        } else if !state.isTrusted {
             showPermissionWindow()
         }
 
@@ -98,17 +122,43 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Windows.present(learningWindow!)
     }
 
-    private func showOnboardingIfNeeded() {
-        guard !ProfileStore.shared.profile.hasCompletedOnboarding else { return }
-        if onboardingWindow == nil {
-            let view = OnboardingView(store: ProfileStore.shared) { [weak self] in
-                self?.onboardingWindow?.close()
-                Log.shared.add("Writer profile set up")
-            }
-            onboardingWindow = Windows.make(
-                title: "Welcome to Nudge", size: NSSize(width: 480, height: 420), content: view)
+    var canCheckForUpdates: Bool { Self.isReleaseBuild }
+
+    func checkForUpdates() {
+        updater.checkForUpdates(nil)
+    }
+
+    private func showWelcome() {
+        let stepBinding = Binding<WelcomeView.Step>(
+            get: { WelcomeView.Step(rawValue: UserDefaults.standard.integer(forKey: Self.welcomeStepKey)) ?? .hello },
+            set: { [weak self] step in
+                UserDefaults.standard.set(step.rawValue, forKey: Self.welcomeStepKey)
+                self?.refreshWelcome()
+            })
+        let view = WelcomeView(
+            state: state, step: stepBinding,
+            openAccessibilitySettings: {
+                Permissions.requestAccessibility()
+                Permissions.openAccessibilitySettings()
+            },
+            finish: { [weak self] in
+                UserDefaults.standard.set(true, forKey: Self.welcomeDoneKey)
+                ProfileStore.shared.profile.hasCompletedOnboarding = true
+                Log.shared.add("Welcome finished")
+                self?.welcomeWindow?.close()
+            })
+        if welcomeWindow == nil {
+            welcomeWindow = Windows.make(title: "Welcome to Nudge", size: NSSize(width: 520, height: 420), content: view)
+        } else {
+            welcomeWindow?.contentView = NSHostingView(rootView: view)
         }
-        Windows.present(onboardingWindow!)
+        Windows.present(welcomeWindow!)
+    }
+
+    /// Rebuilds the welcome window after a step change, so it resizes to fit.
+    private func refreshWelcome() {
+        guard welcomeWindow?.isVisible == true else { return }
+        Task { @MainActor in self.showWelcome() }
     }
 
     func showDebugLog() {
@@ -147,6 +197,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard trusted != state.isTrusted else { return }
         state.isTrusted = trusted
         if trusted {
+            // The walk-through continues after the restart, at the next step.
+            if !UserDefaults.standard.bool(forKey: Self.welcomeDoneKey) {
+                UserDefaults.standard.set(WelcomeView.Step.intelligence.rawValue, forKey: Self.welcomeStepKey)
+            }
             // macOS often needs a fresh process before the grant fully applies.
             Log.shared.add("Accessibility turned on. Restarting Nudge.")
             relaunch()

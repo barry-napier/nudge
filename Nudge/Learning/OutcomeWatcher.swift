@@ -110,7 +110,7 @@ final class OutcomeWatcher {
             action: current.action, voice: current.voice, kind: kind,
             original: current.original, rewrite: current.rewrite, final: final, rerunTo: rerunTo)
         Log.shared.add("Outcome | \(current.action) | \(current.appName) | \(kind.rawValue)\(rerunTo.map { " as \($0)" } ?? "")")
-        if UserDefaults.standard.bool(forKey: AppState.logTextKey), let final {
+        if TestingFlags.logText, let final {
             Log.shared.add("    writer's version: \(final.debugDescription)")
         }
         onOutcome?(outcome)

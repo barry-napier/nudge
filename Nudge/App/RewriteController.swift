@@ -344,7 +344,7 @@ final class RewriteController {
     /// Testing aid. Writes the text itself to the local log, only when the
     /// user has turned on "Log Text for Testing".
     private func logText(before: String, after: String?, request: RewriteRequest) {
-        guard UserDefaults.standard.bool(forKey: AppState.logTextKey) else { return }
+        guard TestingFlags.logText else { return }
         if let summary = request.profileSummary {
             Log.shared.add("    profile: \(summary.debugDescription)")
         }

@@ -20,6 +20,7 @@
 		52550CF4E6783F4A381F5A07 /* IconPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DE0BC09CEBEF63309309797 /* IconPanel.swift */; };
 		59923A40C10DAC8A942E8D97 /* PermissionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24CED4251778C3E7A52CB30C /* PermissionView.swift */; };
 		67F67040EF6F28D360138A67 /* Learner.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE59D7772318DED3DAF3C919 /* Learner.swift */; };
+		6EC4BEEA1A4A3E5003360DEC /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBB036BAB62057DE45BBEC7F /* Assets.xcassets */; };
 		7473164185C842BBF5584E41 /* OutcomeWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98E7326684A225CF47AE394B /* OutcomeWatcher.swift */; };
 		74F393CAD4BF8784DE762498 /* AX.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558556D1112B2F66AE6A0FEA /* AX.swift */; };
 		8E1F93A56A3D6439198D35C0 /* SelfTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC69E4FC5674365D83B607F8 /* SelfTest.swift */; };
@@ -27,6 +28,7 @@
 		A21850EEAE246D3224539E0E /* Windows.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F4E2F4EEF209D3DDD9CA77A /* Windows.swift */; };
 		ABC3F0E32807682569F6C3C9 /* WriterProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FD92F1AC5F04A7701CF3ABF /* WriterProfile.swift */; };
 		B0CE1695DC4573DE0C0543DF /* RewriteAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 006A82EA358ADFF0BF2A9EB9 /* RewriteAction.swift */; };
+		C09EC8CC3D990A2D190BC920 /* TestingFlags.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7D3FE54AFDF392BE9C73C1F /* TestingFlags.swift */; };
 		C570D1F98D0AC5523FBD026B /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97B8720166023B784148E5E6 /* AppState.swift */; };
 		C627C13FAFE56E69632D31DD /* TextAccess.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00FC4399D6CAC4EB44231836 /* TextAccess.swift */; };
 		CDA73D0966D10935A07D5FA6 /* RewriteController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B67D49B791DFDBDE73ABA853 /* RewriteController.swift */; };
@@ -34,6 +36,8 @@
 		D34FF6F52BE658C4F49F288D /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0083A8A3DD6133345D111261 /* OnboardingView.swift */; };
 		E149867B805A5FC729F52F49 /* Permissions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 625E8C4E56C7F4E0606E0063 /* Permissions.swift */; };
 		E16408030152C9BB62C19794 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = A522727A68F2519B3CF90D01 /* Log.swift */; };
+		E2291FC94696AF36D9C72C14 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 227C6C65F57129200E582F45 /* WelcomeView.swift */; };
+		E650A2C0B47B28948C068A0F /* Sparkle in Frameworks */ = {isa = PBXBuildFile; productRef = C6C05058E85A10766B2D98B7 /* Sparkle */; };
 		EA20870CEAC06A12A122D13C /* KeyboardTap.swift in Sources */ = {isa = PBXBuildFile; fileRef = E41B5D370D5B3E30D3A7B042 /* KeyboardTap.swift */; };
 		EC0EC31B4CF4C03F44FD7305 /* NudgeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 204210CCFF75D149E024D904 /* NudgeApp.swift */; };
 		EFA09A06F2C0A8B9EAADBD25 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD61E0B5184F594FAACB7628 /* AppDelegate.swift */; };
@@ -49,6 +53,7 @@
 		0DE0BC09CEBEF63309309797 /* IconPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IconPanel.swift; sourceTree = "<group>"; };
 		1E4916B0FEA55E81AD4FE688 /* TextWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextWriter.swift; sourceTree = "<group>"; };
 		204210CCFF75D149E024D904 /* NudgeApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NudgeApp.swift; sourceTree = "<group>"; };
+		227C6C65F57129200E582F45 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
 		24CED4251778C3E7A52CB30C /* PermissionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PermissionView.swift; sourceTree = "<group>"; };
 		33D5DA2966DDFAE75FC1BF1C /* Clipboard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Clipboard.swift; sourceTree = "<group>"; };
 		50361DA1FBA39934BD3333ED /* Nudge.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Nudge.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -70,6 +75,8 @@
 		B67D49B791DFDBDE73ABA853 /* RewriteController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewriteController.swift; sourceTree = "<group>"; };
 		B8B470BF3E549C4880170565 /* LearningView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LearningView.swift; sourceTree = "<group>"; };
 		C0C4EFA1CBC9AE5BE199157A /* FocusTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusTracker.swift; sourceTree = "<group>"; };
+		D7D3FE54AFDF392BE9C73C1F /* TestingFlags.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestingFlags.swift; sourceTree = "<group>"; };
+		DBB036BAB62057DE45BBEC7F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		DC69E4FC5674365D83B607F8 /* SelfTest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SelfTest.swift; sourceTree = "<group>"; };
 		DE59D7772318DED3DAF3C919 /* Learner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Learner.swift; sourceTree = "<group>"; };
 		E09F03D4FECC9B7997BE59A9 /* CandidatePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CandidatePicker.swift; sourceTree = "<group>"; };
@@ -77,6 +84,17 @@
 		F2AD750BA2DD8F0DB44CC6E2 /* DebugLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugLogView.swift; sourceTree = "<group>"; };
 		FD61E0B5184F594FAACB7628 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		95D00167A8420122E20D3624 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E650A2C0B47B28948C068A0F /* Sparkle in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		2CB77BFB29FBB7E8908181C8 /* Learning */ = {
@@ -159,6 +177,7 @@
 				0083A8A3DD6133345D111261 /* OnboardingView.swift */,
 				24CED4251778C3E7A52CB30C /* PermissionView.swift */,
 				935F00CB6C3DE7EB0C4C0183 /* ProfileView.swift */,
+				227C6C65F57129200E582F45 /* WelcomeView.swift */,
 				8F4E2F4EEF209D3DDD9CA77A /* Windows.swift */,
 			);
 			path = UI;
@@ -175,6 +194,7 @@
 		93311BADC21EB8AE8879A582 /* Nudge */ = {
 			isa = PBXGroup;
 			children = (
+				DBB036BAB62057DE45BBEC7F /* Assets.xcassets */,
 				4078A7692B569383D7993033 /* App */,
 				BB187B6B46C94C604FE6C43F /* Focus */,
 				F4B31B52E6171EB1AE944254 /* Input */,
@@ -211,6 +231,7 @@
 			children = (
 				A522727A68F2519B3CF90D01 /* Log.swift */,
 				625E8C4E56C7F4E0606E0063 /* Permissions.swift */,
+				D7D3FE54AFDF392BE9C73C1F /* TestingFlags.swift */,
 			);
 			path = Support;
 			sourceTree = "<group>";
@@ -223,6 +244,8 @@
 			buildConfigurationList = 1E6B75B96FCBAD0CD6D8775F /* Build configuration list for PBXNativeTarget "Nudge" */;
 			buildPhases = (
 				13AF0C7C1AB344344DF84911 /* Sources */,
+				E666B6DABE52E46742E9AE2C /* Resources */,
+				95D00167A8420122E20D3624 /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -230,6 +253,7 @@
 			);
 			name = Nudge;
 			packageProductDependencies = (
+				C6C05058E85A10766B2D98B7 /* Sparkle */,
 			);
 			productName = Nudge;
 			productReference = 50361DA1FBA39934BD3333ED /* Nudge.app */;
@@ -258,6 +282,9 @@
 			);
 			mainGroup = 7986CC1FE44B0CA21C484581;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				49EA09974FCF05BB2CF13910 /* XCRemoteSwiftPackageReference "Sparkle" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 4613343236BBB2058CB58E85 /* Products */;
 			projectDirPath = "";
@@ -267,6 +294,17 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		E666B6DABE52E46742E9AE2C /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				6EC4BEEA1A4A3E5003360DEC /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		13AF0C7C1AB344344DF84911 /* Sources */ = {
@@ -301,8 +339,10 @@
 				CDA73D0966D10935A07D5FA6 /* RewriteController.swift in Sources */,
 				F1AC9CCD0642592DB3A36489 /* Rewriter.swift in Sources */,
 				8E1F93A56A3D6439198D35C0 /* SelfTest.swift in Sources */,
+				C09EC8CC3D990A2D190BC920 /* TestingFlags.swift in Sources */,
 				C627C13FAFE56E69632D31DD /* TextAccess.swift in Sources */,
 				17D4D0E6B0CDFCB0C14978EE /* TextWriter.swift in Sources */,
+				E2291FC94696AF36D9C72C14 /* WelcomeView.swift in Sources */,
 				A21850EEAE246D3224539E0E /* Windows.swift in Sources */,
 				ABC3F0E32807682569F6C3C9 /* WriterProfile.swift in Sources */,
 			);
@@ -381,6 +421,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Config/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Nudge;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_LSUIElement = YES;
@@ -406,6 +447,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Config/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = Nudge;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INFOPLIST_KEY_LSUIElement = YES;
@@ -413,6 +455,7 @@
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
+				OTHER_CODE_SIGN_FLAGS = "--timestamp";
 				PRODUCT_BUNDLE_IDENTIFIER = com.barrynapier.nudge;
 				PRODUCT_NAME = Nudge;
 				SDKROOT = macosx;
@@ -506,6 +549,25 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		49EA09974FCF05BB2CF13910 /* XCRemoteSwiftPackageReference "Sparkle" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sparkle-project/Sparkle";
+			requirement = {
+				kind = exactVersion;
+				version = 2.10.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		C6C05058E85A10766B2D98B7 /* Sparkle */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 49EA09974FCF05BB2CF13910 /* XCRemoteSwiftPackageReference "Sparkle" */;
+			productName = Sparkle;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = C28573022B4A67500B2C4905 /* Project object */;
 }
