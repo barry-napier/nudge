@@ -3,8 +3,9 @@
 A private, on-device writing helper for macOS. Nudge shows a small icon next to
 the text field you are typing in, in any app. Nothing leaves your Mac.
 
-Status: **Stage 2**. Click the icon to fix, shorten or improve the text in the
-field with Apple's on-device model, with Undo.
+Status: **Stage 3**. Double-tap right Option (or click the icon) to open a menu,
+pick a rewrite with the arrow keys or 1 to 8, and Apple's on-device model
+rewrites the text in place, with Undo.
 
 ## Requirements
 

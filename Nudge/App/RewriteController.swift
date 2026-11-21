@@ -1,13 +1,14 @@
 import AppKit
 import ApplicationServices
 
-/// Runs the Stage 2 loop: click the icon, pick an action, rewrite the text
-/// on device, and put it back in the field, with Undo.
+/// Runs the rewrite loop: open the menu (click the icon, or double-tap the
+/// trigger key), pick an action, rewrite the text on device, and put it back
+/// in the field, with Undo.
 @MainActor
 final class RewriteController {
     private let icon = IconPanel()
     private let popover = ActionPopover()
-    private let keys = EscapeKeyTap()
+    let keys = KeyboardTap()
 
     private var field: FocusedField?
     private var work: Task<Void, Never>?
@@ -16,6 +17,8 @@ final class RewriteController {
     private var feedbackReset: Task<Void, Never>?
 
     private static let undoWindow: TimeInterval = 30
+    private static let lastChoiceKey = "lastMenuChoice"
+    private static let lastCustomKey = "lastCustomInstruction"
 
     private struct UndoRecord {
         let element: AXUIElement
@@ -31,9 +34,9 @@ final class RewriteController {
 
     init() {
         icon.onClick = { [weak self] in self?.iconClicked() }
-        popover.onAction = { [weak self] in self?.run($0) }
-        popover.onUndo = { [weak self] in self?.performUndo() }
-        keys.onEscape = { [weak self] in self?.escapePressed() }
+        popover.onPick = { [weak self] in self?.pick($0) }
+        keys.onDoubleTap = { [weak self] in self?.doubleTapped() }
+        keys.onKey = { [weak self] in self?.keyPressed($0) }
         keys.onOtherKey = { [weak self] in
             // Typing while the menu is open closes it. The key still reaches the app.
             if self?.work == nil { self?.closePopover() }
@@ -68,18 +71,32 @@ final class RewriteController {
         if popover.isVisible {
             closePopover()
         } else {
-            openPopover(message: nil)
+            openPopover(message: nil, fromKeyboard: false)
         }
     }
 
-    private func openPopover(message: String?) {
+    private func doubleTapped() {
+        Log.shared.add("Double-tap \(keys.trigger.title) | \(field?.appName ?? "no text field focused")\(work != nil ? " | busy, ignored" : "")")
+        guard work == nil, field != nil else { return }
+        if popover.isVisible {
+            closePopover()
+        } else {
+            openPopover(message: nil, fromKeyboard: true)
+        }
+    }
+
+    private func openPopover(message: String?, fromKeyboard: Bool = false) {
         let unavailable = Rewriter.unavailableMessage
-        popover.model.message = message ?? unavailable
-        popover.model.actionsEnabled = unavailable == nil
-        popover.model.canUndo = undoIsAvailable
-        popover.show(near: icon.frame)
-        Log.shared.add("Menu opened\(popover.model.message.map { " | message: \($0)" } ?? "")")
-        keys.arm()
+        let model = popover.model
+        model.message = message ?? unavailable
+        model.actionsEnabled = unavailable == nil
+        model.isTyping = false
+        model.items = (undoIsAvailable ? [.undo] : []) + RewriteAction.allCases.map { .action($0) } + [.custom]
+        // The last choice is preselected, so double-tap then Return repeats it.
+        model.selected = model.actionsEnabled ? lastChoice : (undoIsAvailable ? .undo : nil)
+        popover.show(near: icon.frame, animated: !fromKeyboard)
+        Log.shared.add("Menu opened\(fromKeyboard ? " from keyboard" : "")\(model.message.map { " | message: \($0)" } ?? "")")
+        keys.mode = .menu
         if mouseMonitor == nil {
             // A click anywhere outside Nudge closes the popover.
             mouseMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.leftMouseDown, .rightMouseDown]) { [weak self] _ in
@@ -95,20 +112,90 @@ final class RewriteController {
             NSEvent.removeMonitor(mouseMonitor)
             self.mouseMonitor = nil
         }
-        if work == nil { keys.disarm() }
+        popover.model.isTyping = false
+        keys.mode = work == nil ? .idle : .working
     }
 
-    private func escapePressed() {
+    // MARK: - Keys and picks
+
+    private func keyPressed(_ key: KeyboardTap.Key) {
         if let work {
-            work.cancel()
-        } else {
-            closePopover()
+            if case .escape = key { work.cancel() }
+            return
         }
+        let model = popover.model
+        guard popover.isVisible else { return }
+
+        if model.isTyping {
+            switch key {
+            case .escape:
+                model.isTyping = false
+                keys.mode = .menu
+                popover.refit()
+            case .enter:
+                let instruction = model.customText.trimmingCharacters(in: .whitespacesAndNewlines)
+                guard !instruction.isEmpty else { return }
+                UserDefaults.standard.set(instruction, forKey: Self.lastCustomKey)
+                remember(.custom)
+                run(.custom(instruction))
+            case .backspace:
+                if !model.customText.isEmpty { model.customText.removeLast() }
+            case .text(let text):
+                if model.customText.count < 200 { model.customText += text }
+            case .paste:
+                if let pasted = NSPasteboard.general.string(forType: .string) {
+                    let line = pasted.replacingOccurrences(of: "\n", with: " ")
+                    model.customText = String((model.customText + line).prefix(200))
+                }
+            case .up, .down, .number:
+                break
+            }
+            return
+        }
+
+        switch key {
+        case .up: model.moveSelection(by: -1)
+        case .down: model.moveSelection(by: 1)
+        case .enter: if let item = model.selected { pick(item) }
+        case .escape: closePopover()
+        case .number(let number):
+            if let item = model.items.first(where: { $0.number == number }) { pick(item) }
+        default: break
+        }
+    }
+
+    private func pick(_ item: MenuItem) {
+        guard popover.model.isEnabled(item) else { return }
+        switch item {
+        case .undo:
+            performUndo()
+        case .action(let action):
+            remember(item)
+            run(.preset(action))
+        case .custom:
+            let model = popover.model
+            model.selected = .custom
+            model.customText = UserDefaults.standard.string(forKey: Self.lastCustomKey) ?? ""
+            model.isTyping = true
+            keys.mode = .typing
+            popover.refit()
+            Log.shared.add("Custom instruction box opened")
+        }
+    }
+
+    private var lastChoice: MenuItem {
+        let saved = UserDefaults.standard.string(forKey: Self.lastChoiceKey)
+        if saved == MenuItem.custom.id { return .custom }
+        return .action(saved.flatMap(RewriteAction.init(rawValue:)) ?? .improve)
+    }
+
+    private func remember(_ item: MenuItem) {
+        UserDefaults.standard.set(item.id, forKey: Self.lastChoiceKey)
     }
 
     // MARK: - Rewrite
 
-    private func run(_ action: RewriteAction) {
+    private func run(_ action: RewriteRequest) {
         Log.shared.add("Action chosen | \(action.logName)")
         closePopover()
         guard let field else {
@@ -133,12 +220,12 @@ final class RewriteController {
 
         feedbackReset?.cancel()
         icon.model.state = .working
-        keys.arm()
+        keys.mode = .working
         let started = ContinuousClock.now
 
         work = Task { [weak self] in
             do {
-                let result = try await Rewriter.rewrite(captured.text, action: action)
+                let result = try await Rewriter.rewrite(captured.text, request: action)
                 try Task.checkCancellation()
                 try await self?.apply(result, for: captured, action: action, in: field, started: started)
             } catch is CancellationError {
@@ -153,7 +240,7 @@ final class RewriteController {
     }
 
     private func apply(
-        _ result: String, for captured: CapturedText, action: RewriteAction,
+        _ result: String, for captured: CapturedText, action: RewriteRequest,
         in field: FocusedField, started: ContinuousClock.Instant
     ) async throws {
         let seconds = (ContinuousClock.now - started).formatted(.units(allowed: [.seconds], fractionalPart: .show(length: 1)))
@@ -221,7 +308,7 @@ final class RewriteController {
 
     private func finishWork() {
         work = nil
-        if !popover.isVisible { keys.disarm() }
+        keys.mode = popover.isVisible ? .menu : .idle
     }
 
     // MARK: - Undo
@@ -262,6 +349,7 @@ final class RewriteController {
         }
 
         icon.model.state = .working
+        keys.mode = .working
         work = Task { [weak self] in
             do {
                 let method = try await TextWriter.replace(

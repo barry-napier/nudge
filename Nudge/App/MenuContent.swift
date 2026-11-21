@@ -2,7 +2,7 @@ import SwiftUI
 
 /// The menu shown when the user clicks the Nudge menu bar icon.
 struct MenuContent: View {
-    let state: AppState
+    @Bindable var state: AppState
     let app: AppDelegate
 
     var body: some View {
@@ -13,8 +13,17 @@ struct MenuContent: View {
             Text("⏸️ Paused")
         } else {
             Text("🟢 Accessibility: on")
+            if !state.keyboardReady {
+                Text("⚠️ Double-tap is not working. See Debug Log.")
+            }
         }
         Divider()
+        Picker("Double-tap Key", selection: $state.trigger) {
+            ForEach(TriggerKey.allCases) { key in
+                Text(key.title).tag(key)
+            }
+        }
+        .onChange(of: state.trigger) { app.triggerChanged() }
         Button(state.isPaused ? "Resume" : "Pause") { app.togglePause() }
             .disabled(!state.isTrusted)
         Button("Show Debug Log") { app.showDebugLog() }

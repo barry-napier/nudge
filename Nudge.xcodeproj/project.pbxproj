@@ -16,7 +16,7 @@
 		52550CF4E6783F4A381F5A07 /* IconPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0DE0BC09CEBEF63309309797 /* IconPanel.swift */; };
 		59923A40C10DAC8A942E8D97 /* PermissionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 24CED4251778C3E7A52CB30C /* PermissionView.swift */; };
 		74F393CAD4BF8784DE762498 /* AX.swift in Sources */ = {isa = PBXBuildFile; fileRef = 558556D1112B2F66AE6A0FEA /* AX.swift */; };
-		95C237BE3F5F0A6144038F54 /* EscapeKeyTap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 81BAB2BBE7F6404BFC403C61 /* EscapeKeyTap.swift */; };
+		901065CB14A95A6646097753 /* OutputCleaner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A8010B7C450C53F6821E9795 /* OutputCleaner.swift */; };
 		A21850EEAE246D3224539E0E /* Windows.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8F4E2F4EEF209D3DDD9CA77A /* Windows.swift */; };
 		B0CE1695DC4573DE0C0543DF /* RewriteAction.swift in Sources */ = {isa = PBXBuildFile; fileRef = 006A82EA358ADFF0BF2A9EB9 /* RewriteAction.swift */; };
 		C570D1F98D0AC5523FBD026B /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97B8720166023B784148E5E6 /* AppState.swift */; };
@@ -25,6 +25,7 @@
 		CF90E569DCEBE42FDFE4C32D /* DebugLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2AD750BA2DD8F0DB44CC6E2 /* DebugLogView.swift */; };
 		E149867B805A5FC729F52F49 /* Permissions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 625E8C4E56C7F4E0606E0063 /* Permissions.swift */; };
 		E16408030152C9BB62C19794 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = A522727A68F2519B3CF90D01 /* Log.swift */; };
+		EA20870CEAC06A12A122D13C /* KeyboardTap.swift in Sources */ = {isa = PBXBuildFile; fileRef = E41B5D370D5B3E30D3A7B042 /* KeyboardTap.swift */; };
 		EC0EC31B4CF4C03F44FD7305 /* NudgeApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 204210CCFF75D149E024D904 /* NudgeApp.swift */; };
 		EFA09A06F2C0A8B9EAADBD25 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD61E0B5184F594FAACB7628 /* AppDelegate.swift */; };
 		F1AC9CCD0642592DB3A36489 /* Rewriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E45935F08E4F1C2F1656590 /* Rewriter.swift */; };
@@ -43,15 +44,16 @@
 		558556D1112B2F66AE6A0FEA /* AX.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AX.swift; sourceTree = "<group>"; };
 		625E8C4E56C7F4E0606E0063 /* Permissions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Permissions.swift; sourceTree = "<group>"; };
 		7E45935F08E4F1C2F1656590 /* Rewriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Rewriter.swift; sourceTree = "<group>"; };
-		81BAB2BBE7F6404BFC403C61 /* EscapeKeyTap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EscapeKeyTap.swift; sourceTree = "<group>"; };
 		82285C28EFF0F386E407FB78 /* MenuContent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuContent.swift; sourceTree = "<group>"; };
 		8F4E2F4EEF209D3DDD9CA77A /* Windows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Windows.swift; sourceTree = "<group>"; };
 		93B0C12EF25DD601A6F36D27 /* ActionPopover.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionPopover.swift; sourceTree = "<group>"; };
 		97B8720166023B784148E5E6 /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
 		A39BC8F77D7252C7E323F165 /* KeyPoster.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyPoster.swift; sourceTree = "<group>"; };
 		A522727A68F2519B3CF90D01 /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
+		A8010B7C450C53F6821E9795 /* OutputCleaner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OutputCleaner.swift; sourceTree = "<group>"; };
 		B67D49B791DFDBDE73ABA853 /* RewriteController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RewriteController.swift; sourceTree = "<group>"; };
 		C0C4EFA1CBC9AE5BE199157A /* FocusTracker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FocusTracker.swift; sourceTree = "<group>"; };
+		E41B5D370D5B3E30D3A7B042 /* KeyboardTap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardTap.swift; sourceTree = "<group>"; };
 		F2AD750BA2DD8F0DB44CC6E2 /* DebugLogView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DebugLogView.swift; sourceTree = "<group>"; };
 		FD61E0B5184F594FAACB7628 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -80,6 +82,7 @@
 		6E974825388B2F5D6ED632F4 /* Rewrite */ = {
 			isa = PBXGroup;
 			children = (
+				A8010B7C450C53F6821E9795 /* OutputCleaner.swift */,
 				006A82EA358ADFF0BF2A9EB9 /* RewriteAction.swift */,
 				7E45935F08E4F1C2F1656590 /* Rewriter.swift */,
 			);
@@ -151,7 +154,7 @@
 		F4B31B52E6171EB1AE944254 /* Input */ = {
 			isa = PBXGroup;
 			children = (
-				81BAB2BBE7F6404BFC403C61 /* EscapeKeyTap.swift */,
+				E41B5D370D5B3E30D3A7B042 /* KeyboardTap.swift */,
 				A39BC8F77D7252C7E323F165 /* KeyPoster.swift */,
 			);
 			path = Input;
@@ -230,13 +233,14 @@
 				C570D1F98D0AC5523FBD026B /* AppState.swift in Sources */,
 				42C2B2FDBEB1AFF99F4352FA /* Clipboard.swift in Sources */,
 				CF90E569DCEBE42FDFE4C32D /* DebugLogView.swift in Sources */,
-				95C237BE3F5F0A6144038F54 /* EscapeKeyTap.swift in Sources */,
 				325C6B7468FD1809A4BCE3A3 /* FocusTracker.swift in Sources */,
 				52550CF4E6783F4A381F5A07 /* IconPanel.swift in Sources */,
 				45C57773AB7E264BC305C69B /* KeyPoster.swift in Sources */,
+				EA20870CEAC06A12A122D13C /* KeyboardTap.swift in Sources */,
 				E16408030152C9BB62C19794 /* Log.swift in Sources */,
 				4AA49D2CBD6353EEB1177CEC /* MenuContent.swift in Sources */,
 				EC0EC31B4CF4C03F44FD7305 /* NudgeApp.swift in Sources */,
+				901065CB14A95A6646097753 /* OutputCleaner.swift in Sources */,
 				59923A40C10DAC8A942E8D97 /* PermissionView.swift in Sources */,
 				E149867B805A5FC729F52F49 /* Permissions.swift in Sources */,
 				B0CE1695DC4573DE0C0543DF /* RewriteAction.swift in Sources */,

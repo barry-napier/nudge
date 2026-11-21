@@ -49,6 +49,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
+    func triggerChanged() {
+        controller.keys.trigger = state.trigger
+        Log.shared.add("Double-tap key set to \(state.trigger.title)")
+    }
+
     func showPermissionWindow() {
         if permissionWindow == nil {
             let view = PermissionView(state: state) {
@@ -76,12 +81,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         guard !isTracking, state.isTrusted, !state.isPaused else { return }
         isTracking = true
         tracker.start()
+        controller.keys.trigger = state.trigger
+        state.keyboardReady = controller.keys.start()
+        if state.keyboardReady {
+            Log.shared.add("Watching for a double-tap of \(state.trigger.title)")
+        }
     }
 
     private func stopTracking() {
         guard isTracking else { return }
         isTracking = false
         tracker.stop()
+        controller.keys.stop()
         controller.fieldChanged(nil)
     }
 
