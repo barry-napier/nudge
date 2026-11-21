@@ -7,6 +7,9 @@ struct FocusedField: Equatable {
     let pid: pid_t
     let appName: String
     let role: String
+    let bundleID: String?
+    /// The web page's host name, for fields inside a web page.
+    let site: String?
     /// Browsers and Electron apps: write by pasting, not through Accessibility.
     let prefersPaste: Bool
     /// The part of the field the user can see, in Accessibility coordinates
@@ -32,6 +35,7 @@ final class FocusTracker: NSObject {
     private var pid: pid_t = 0
     private var appIsElectron = false
     private var focusedIsWeb = false
+    private var focusedSite: String?
     private var focused: AXUIElement?
     private var focusedIsEditable = false
     private var focusedRole = ""
@@ -194,7 +198,7 @@ final class FocusTracker: NSObject {
         let (editable, reason) = classify(element, role: role, subrole: subrole)
         focusedRole = subrole.map { "\(role)/\($0)" } ?? role
         focusedIsEditable = editable
-        (clipAncestors, focusedIsWeb) = editable ? scanAncestors(of: element) : ([], false)
+        (clipAncestors, focusedIsWeb, focusedSite) = editable ? scanAncestors(of: element) : ([], false, nil)
 
         let frameText = AX.frame(element).map(Self.describe) ?? "no frame"
         logOnce("\(appName) | \(focusedRole) | \(editable ? "text field" : "not a text field"): \(reason) | \(frameText)")
@@ -219,9 +223,10 @@ final class FocusTracker: NSObject {
     /// Finds the scroll areas and window that bound what the user can see of
     /// a field (a long TextEdit document is much taller than its window), and
     /// whether the field sits inside a web page.
-    private func scanAncestors(of element: AXUIElement) -> ([AXUIElement], Bool) {
+    private func scanAncestors(of element: AXUIElement) -> ([AXUIElement], Bool, String?) {
         var result: [AXUIElement] = []
         var isWeb = false
+        var site: String?
         var current = AX.element(element, kAXParentAttribute)
         var depth = 0
         while let node = current, depth < 40 {
@@ -229,12 +234,15 @@ final class FocusTracker: NSObject {
             if role == "AXScrollArea" || role == "AXWindow" {
                 result.append(node)
             }
-            if role == "AXWebArea" { isWeb = true }
+            if role == "AXWebArea" {
+                isWeb = true
+                if site == nil { site = AX.url(node)?.host() }
+            }
             if role == "AXWindow" || role == "AXApplication" { break }
             current = AX.element(node, kAXParentAttribute)
             depth += 1
         }
-        return (result, isWeb)
+        return (result, isWeb, site)
     }
 
     private func refreshFrame() {
@@ -253,6 +261,7 @@ final class FocusTracker: NSObject {
         let isBrowser = bundleID.map(Self.browserBundleIDs.contains) ?? false
         report(FocusedField(
             element: focused, pid: pid, appName: appName, role: focusedRole,
+            bundleID: bundleID, site: focusedSite,
             prefersPaste: focusedIsWeb || appIsElectron || isBrowser,
             visibleFrame: rect))
     }

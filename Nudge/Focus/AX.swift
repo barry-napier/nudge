@@ -44,6 +44,16 @@ enum AX {
         return CGRect(origin: origin, size: size)
     }
 
+    static func url(_ element: AXUIElement) -> URL? {
+        var value: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(element, kAXURLAttribute as CFString, &value) == .success,
+              let value else {
+            return nil
+        }
+        if CFGetTypeID(value) == CFURLGetTypeID() { return (value as! CFURL) as URL }
+        return (value as? String).flatMap(URL.init(string:))
+    }
+
     static func setString(_ element: AXUIElement, _ attribute: String, _ value: String) -> AXError {
         AXUIElementSetAttributeValue(element, attribute as CFString, value as CFString)
     }

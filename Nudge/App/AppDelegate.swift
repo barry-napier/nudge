@@ -10,6 +10,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     private var trustTimer: Timer?
     private var permissionWindow: NSWindow?
     private var logWindow: NSWindow?
+    private var profileWindow: NSWindow?
+    private var onboardingWindow: NSWindow?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "?"
@@ -27,6 +29,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Log.shared.add("Accessibility: \(state.isTrusted ? "on" : "not on")")
         if state.isTrusted {
             startTracking()
+            showOnboardingIfNeeded()
         } else {
             showPermissionWindow()
         }
@@ -64,6 +67,28 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 title: "Welcome to Nudge", size: NSSize(width: 460, height: 380), content: view)
         }
         Windows.present(permissionWindow!)
+    }
+
+    func showProfileWindow() {
+        if profileWindow == nil {
+            profileWindow = Windows.make(
+                title: "Writer Profile", size: NSSize(width: 560, height: 720),
+                content: ProfileView(store: ProfileStore.shared))
+        }
+        Windows.present(profileWindow!)
+    }
+
+    private func showOnboardingIfNeeded() {
+        guard !ProfileStore.shared.profile.hasCompletedOnboarding else { return }
+        if onboardingWindow == nil {
+            let view = OnboardingView(store: ProfileStore.shared) { [weak self] in
+                self?.onboardingWindow?.close()
+                Log.shared.add("Writer profile set up")
+            }
+            onboardingWindow = Windows.make(
+                title: "Welcome to Nudge", size: NSSize(width: 480, height: 420), content: view)
+        }
+        Windows.present(onboardingWindow!)
     }
 
     func showDebugLog() {

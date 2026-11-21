@@ -4,14 +4,14 @@ import Foundation
 /// tags, code fences, "Sure, here is…" openers, wrapping quotes, and
 /// sign-offs or [Your Name] placeholders the writer never wrote.
 enum OutputCleaner {
-    static func clean(_ raw: String, original: String) -> String {
+    static func clean(_ raw: String, original: String, signOffWords: [String] = []) -> String {
         var text = raw
             .replacingOccurrences(of: "<text>", with: "")
             .replacingOccurrences(of: "</text>", with: "")
             .trimmingCharacters(in: .whitespacesAndNewlines)
         text = removeCodeFence(text)
         text = removeOpener(text, original: original)
-        text = removeAddedEnding(text, original: original)
+        text = removeAddedEnding(text, original: original, signOffWords: signOffWords)
         text = removeWrappingQuotes(text, original: original)
         return text
     }
@@ -49,8 +49,22 @@ enum OutputCleaner {
     private static let placeholderBrackets: [(String, String)] = [("[", "]"), ("<", ">"), ("{", "}")]
 
     /// Drops trailing placeholder and sign-off lines the original did not have.
-    private static func removeAddedEnding(_ text: String, original: String) -> String {
+    private static func removeAddedEnding(_ text: String, original: String, signOffWords: [String]) -> String {
         let originalLower = original.lowercased()
+        let writerWords = Set(signOffWords.map { $0.lowercased() })
+        let known = signOffs.union(writerWords)
+        /// "Cheers, Barry" counts as a sign-off line: every part is a sign-off or the name.
+        func isSignOffLine(_ line: String) -> Bool {
+            let parts = line.lowercased()
+                .components(separatedBy: CharacterSet(charactersIn: ",.!"))
+                .map { $0.trimmingCharacters(in: .whitespaces) }
+                .filter { !$0.isEmpty }
+            return !parts.isEmpty && parts.allSatisfy(known.contains)
+        }
+        // If the writer ended with a sign-off, the model may swap it for one of theirs.
+        let originalLast = original.components(separatedBy: "\n")
+            .last { !$0.trimmingCharacters(in: .whitespaces).isEmpty } ?? ""
+        let originalHadSignOff = isSignOffLine(originalLast)
         var text = text
         // An inline placeholder first, for example "Best, [Your Name]" or "<Your Name>".
         for (open, close) in placeholderBrackets where !original.contains(open) {
@@ -71,7 +85,7 @@ enum OutputCleaner {
                 trimmed.hasPrefix(open) && trimmed.hasSuffix(close) && !original.contains(open)
             }
             let bare = trimmed.lowercased().trimmingCharacters(in: CharacterSet(charactersIn: ",.!"))
-            let isAddedSignOff = signOffs.contains(bare) && !originalLower.contains(bare)
+            let isAddedSignOff = !originalHadSignOff && isSignOffLine(trimmed) && !originalLower.contains(bare)
             guard isPlaceholder || isAddedSignOff else { break }
             lines.removeLast()
         }

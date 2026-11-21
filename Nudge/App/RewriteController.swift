@@ -195,13 +195,30 @@ final class RewriteController {
 
     // MARK: - Rewrite
 
-    private func run(_ action: RewriteRequest) {
-        Log.shared.add("Action chosen | \(action.logName)")
-        closePopover()
+    /// Adds the writer profile and the voice for this field to a request.
+    private func withProfile(_ request: RewriteRequest, for field: FocusedField) -> RewriteRequest {
+        let profile = ProfileStore.shared.profile
+        var request = request
+        let voice = profile.voice(bundleID: field.bundleID, site: field.site)
+        request.profileSummary = profile.summary(for: request.action, tone: voice?.tone)
+        request.avoidWords = WriterProfile.clean(profile.avoidWords)
+        request.signOffWords = profile.signOffWords
+        let usesVoice = request.action.map { [.concise, .improve].contains($0) } ?? false
+        if usesVoice, let voice {
+            request.voiceSource = "\(voice.tone.title) (\(voice.source))"
+        }
+        return request
+    }
+
+    private func run(_ baseRequest: RewriteRequest) {
         guard let field else {
-            Log.shared.add("\(action.logName) | no text field is focused any more")
+            Log.shared.add("\(baseRequest.logName) | no text field is focused any more")
+            closePopover()
             return
         }
+        let action = withProfile(baseRequest, for: field)
+        Log.shared.add("Action chosen | \(action.logName)\(action.voiceSource.map { " | voice: \($0)" } ?? "")")
+        closePopover()
         guard let captured = TextAccess.capture(from: field.element) else {
             fail("Nudge could not read the text in this field.", log: "\(action.logName) | \(field.appName) | could not read text")
             return
@@ -301,6 +318,9 @@ final class RewriteController {
     /// user has turned on "Log Text for Testing".
     private func logText(before: String, after: String?, request: RewriteRequest) {
         guard UserDefaults.standard.bool(forKey: AppState.logTextKey) else { return }
+        if let summary = request.profileSummary {
+            Log.shared.add("    profile: \(summary.debugDescription)")
+        }
         if let instruction = request.customInstruction {
             Log.shared.add("    instruction: \(instruction.debugDescription)")
         }

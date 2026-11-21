@@ -95,6 +95,20 @@ struct RewriteRequest: Sendable {
     let strategy: CandidatePicker.Strategy
     let action: RewriteAction?
     let customInstruction: String?
+    /// About the writer, from their profile. Goes before the task in the prompt.
+    var profileSummary: String?
+    /// Words the writer never wants. Versions that avoid them are preferred.
+    var avoidWords: [String] = []
+    /// The writer's own sign-offs and name, kept when the original had a sign-off.
+    var signOffWords: [String] = []
+    /// Where the tone came from, for the log and the menu. For example "Slack".
+    var voiceSource: String?
+
+    /// How many versions to ask for. Banned words make extra versions worth it.
+    var candidateCount: Int {
+        if strategy == .single, action != .fix, !avoidWords.isEmpty { return 3 }
+        return strategy.count
+    }
 
     static func preset(_ action: RewriteAction) -> RewriteRequest {
         RewriteRequest(

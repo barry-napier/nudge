@@ -3,9 +3,11 @@
 A private, on-device writing helper for macOS. Nudge shows a small icon next to
 the text field you are typing in, in any app. Nothing leaves your Mac.
 
-Status: **Stage 3**. Double-tap right Option (or click the icon) to open a menu,
+Status: **Stage 4**. Double-tap right Option (or click the icon) to open a menu,
 pick a rewrite with the arrow keys or 1 to 8, and Apple's on-device model
-rewrites the text in place, with Undo.
+rewrites the text in place, with Undo. A local writer profile (tone, UK or US
+spelling, banned words, samples, per-app and per-site voices) makes rewrites
+sound like you.
 
 ## Requirements
 

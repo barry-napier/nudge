@@ -15,11 +15,17 @@ enum CandidatePicker {
         var count: Int { self == .single ? 1 : 3 }
     }
 
-    static func pick(_ candidates: [String], original: String, strategy: Strategy) -> String? {
+    static func pick(
+        _ candidates: [String], original: String, strategy: Strategy, avoidWords: [String] = []
+    ) -> String? {
         let usable = candidates.filter { !$0.isEmpty }
         // Never pick a version that lost a number from the original.
         let faithful = usable.filter { keepsNumbers(of: original, in: $0) }
-        let pool = faithful.isEmpty ? usable : faithful
+        var pool = faithful.isEmpty ? usable : faithful
+        // Prefer versions with the fewest of the writer's banned words.
+        if !avoidWords.isEmpty, let fewest = pool.map({ bannedCount($0, avoidWords) }).min() {
+            pool = pool.filter { bannedCount($0, avoidWords) == fewest }
+        }
         switch strategy {
         case .single:
             return pool.first
@@ -48,6 +54,16 @@ enum CandidatePicker {
         text.lowercased()
             .components(separatedBy: CharacterSet.alphanumerics.inverted)
             .filter { !$0.isEmpty }
+    }
+
+    static func bannedCount(_ text: String, _ avoidWords: [String]) -> Int {
+        avoidWords.reduce(0) { total, word in
+            let pattern = "\\b" + NSRegularExpression.escapedPattern(for: word) + "\\b"
+            guard let regex = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]) else {
+                return total
+            }
+            return total + regex.numberOfMatches(in: text, range: NSRange(text.startIndex..., in: text))
+        }
     }
 
     private static func keepsNumbers(of original: String, in candidate: String) -> Bool {

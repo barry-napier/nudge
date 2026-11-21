@@ -29,6 +29,7 @@ struct MenuContent: View {
         .onChange(of: state.trigger) { app.triggerChanged() }
         Button(state.isPaused ? "Resume" : "Pause") { app.togglePause() }
             .disabled(!state.isTrusted)
+        Button("Writer Profile…") { app.showProfileWindow() }
         Toggle("Log Text for Testing", isOn: $state.logText)
             .onChange(of: state.logText) {
                 Log.shared.add(state.logText
