@@ -37,7 +37,7 @@ jobs:
       TEAM_ID: B45SDP2V36
     steps:
       - name: Check out
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7.0.1
         with:
           fetch-depth: 0  # the build number is the commit count
 
@@ -97,7 +97,7 @@ jobs:
 
       - name: Upload the build log on failure
         if: failure()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.2
         with:
           name: release-build
           path: build/release
