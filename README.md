@@ -103,17 +103,33 @@ runs.
 
 ## Releasing
 
+Releases are built by GitHub Actions. To ship a new version:
+
 ```sh
-./scripts/release.sh 0.1.0            # build, sign, notarize, DMG, appcast, cask
-./scripts/release.sh 0.1.0 --publish  # also push and create the GitHub release
+./scripts/ship.sh 0.2.0
 ```
 
-One-time setup: save a notarization login with `xcrun notarytool
-store-credentials nudge-notary`. Updates are signed with a Sparkle key kept in
-the login keychain under the account `com.barrynapier.nudge`. Back it up with
-Sparkle's `generate_keys --account com.barrynapier.nudge -x nudge-sparkle-key`
-and keep that file somewhere safe: without it, no update can ever be shipped
-to existing users.
+That pushes `main` and a `v0.2.0` tag. The [Release workflow](.github/workflows/release.yml)
+then builds Nudge, signs it with Developer ID, has Apple notarize it, packs the
+DMG, signs it for Sparkle, and publishes the GitHub release with
+`appcast.xml`. Installed copies of Nudge check
+`releases/latest/download/appcast.xml` and offer the update by themselves. You
+can also start a release from GitHub: Actions, Release, Run workflow.
+
+The workflow needs these repository secrets: `MACOS_CERT_P12`,
+`MACOS_CERT_PASSWORD`, `NOTARY_APPLE_ID`, `NOTARY_PASSWORD` and
+`SPARKLE_PRIVATE_KEY`. The workflow file says what each one is.
+
+To build a release on a Mac instead, without publishing:
+
+```sh
+./scripts/release.sh 0.2.0                  # needs: xcrun notarytool store-credentials nudge-notary
+./scripts/release.sh 0.2.0 --skip-notarize  # quick local check
+```
+
+Keep a backup of the Sparkle update key (`generate_keys --account
+com.barrynapier.nudge -x FILE`) somewhere safe. Without it, no update can ever
+reach people who already installed Nudge.
 
 ## License
 

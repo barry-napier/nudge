@@ -10,6 +10,10 @@
 # One-time setup for notarization (stores your login in the keychain):
 #   xcrun notarytool store-credentials nudge-notary \
 #     --apple-id YOUR_APPLE_ID --team-id YOUR_TEAM_ID
+#
+# GitHub Actions runs this same script (.github/workflows/release.yml). There,
+# the logins come from environment variables instead of the keychain:
+#   TEAM_ID, NOTARY_APPLE_ID, NOTARY_PASSWORD, SPARKLE_KEY_FILE
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
@@ -43,12 +47,26 @@ if [[ -n "$(git status --porcelain)" ]]; then
   echo "error: commit your changes first, so the release matches a commit." >&2
   exit 1
 fi
-[[ -f Config/Local.xcconfig ]] || { echo "error: run scripts/build.sh once first." >&2; exit 1; }
-TEAM_ID=$(sed -n 's/^DEVELOPMENT_TEAM *= *//p' Config/Local.xcconfig | tr -d ' ')
-if [[ $NOTARIZE == 1 ]] && ! xcrun notarytool history --keychain-profile "$NOTARY_PROFILE" >/dev/null 2>&1; then
-  echo "error: no notarization login saved. Run this once, then try again:" >&2
+if [[ -z "${TEAM_ID:-}" ]]; then
+  [[ -f Config/Local.xcconfig ]] || { echo "error: run scripts/build.sh once first." >&2; exit 1; }
+  TEAM_ID=$(sed -n 's/^DEVELOPMENT_TEAM *= *//p' Config/Local.xcconfig | tr -d ' ')
+fi
+# Notarization login: from the environment on GitHub, from the keychain on a Mac.
+if [[ -n "${NOTARY_APPLE_ID:-}" ]]; then
+  NOTARY_AUTH=(--apple-id "$NOTARY_APPLE_ID" --password "${NOTARY_PASSWORD:?NOTARY_PASSWORD is not set}" --team-id "$TEAM_ID")
+else
+  NOTARY_AUTH=(--keychain-profile "$NOTARY_PROFILE")
+fi
+if [[ $NOTARIZE == 1 ]] && ! xcrun notarytool history "${NOTARY_AUTH[@]}" >/dev/null 2>&1; then
+  echo "error: Apple's notary service did not accept the login. To save one on this Mac:" >&2
   echo "  xcrun notarytool store-credentials $NOTARY_PROFILE --apple-id YOUR_APPLE_ID --team-id $TEAM_ID" >&2
   exit 1
+fi
+# Sparkle signing key: a file on GitHub, the keychain on a Mac.
+if [[ -n "${SPARKLE_KEY_FILE:-}" ]]; then
+  SPARKLE_KEY=(--ed-key-file "$SPARKLE_KEY_FILE")
+else
+  SPARKLE_KEY=(--account "$SPARKLE_ACCOUNT")
 fi
 
 rm -rf "$OUT"
@@ -90,7 +108,7 @@ fi
 if [[ $NOTARIZE == 1 ]]; then
   step "Notarizing the app (this can take a few minutes)"
   ditto -c -k --keepParent "$APP" "$OUT/Nudge.zip"
-  xcrun notarytool submit "$OUT/Nudge.zip" --keychain-profile "$NOTARY_PROFILE" --wait
+  xcrun notarytool submit "$OUT/Nudge.zip" "${NOTARY_AUTH[@]}" --wait
   xcrun stapler staple "$APP"
 fi
 
@@ -104,7 +122,7 @@ codesign --sign "Developer ID Application" --timestamp "$DMG"
 
 if [[ $NOTARIZE == 1 ]]; then
   step "Notarizing the DMG"
-  xcrun notarytool submit "$DMG" --keychain-profile "$NOTARY_PROFILE" --wait
+  xcrun notarytool submit "$DMG" "${NOTARY_AUTH[@]}" --wait
   xcrun stapler staple "$DMG"
   step "Checking that Gatekeeper accepts it"
   spctl --assess --type open --context context:primary-signature --verbose "$DMG"
@@ -112,7 +130,8 @@ if [[ $NOTARIZE == 1 ]]; then
 fi
 
 step "Signing for Sparkle updates"
-SIGNATURE=$("$SPARKLE_BIN/sign_update" --account "$SPARKLE_ACCOUNT" "$DMG")
+SIGNATURE=$("$SPARKLE_BIN/sign_update" "${SPARKLE_KEY[@]}" "$DMG")
+[[ "$SIGNATURE" == *edSignature* ]] || { echo "error: Sparkle signing failed: $SIGNATURE" >&2; exit 1; }
 DMG_URL="https://github.com/$REPO/releases/download/v$VERSION/Nudge-$VERSION.dmg"
 cat > "$OUT/appcast.xml" <<XML
 <?xml version="1.0" encoding="utf-8"?>
@@ -164,11 +183,14 @@ echo "      $OUT/nudge.rb  (submit to homebrew-cask once published)"
 
 if [[ $PUBLISH == 1 ]]; then
   step "Publishing v$VERSION on GitHub"
-  git push origin HEAD
-  git tag -a "v$VERSION" -m "Nudge $VERSION"
-  git push origin "v$VERSION"
+  # The tag already exists when the release was started by pushing it.
+  if ! git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" >/dev/null 2>&1; then
+    git tag -a "v$VERSION" -m "Nudge $VERSION"
+    git push origin "v$VERSION"
+  fi
   gh release create "v$VERSION" "$DMG" "$OUT/appcast.xml" --repo "$REPO" \
-    --title "Nudge $VERSION" --notes "Download Nudge-$VERSION.dmg, open it, and drag Nudge to Applications."
+    --title "Nudge $VERSION" --verify-tag --generate-notes \
+    --notes "Download **Nudge-$VERSION.dmg**, open it, and drag Nudge to Applications. If you already have Nudge, it will offer this update by itself."
 else
   echo
   echo "Not published. To publish: ./scripts/release.sh $VERSION --publish"
