@@ -63,6 +63,7 @@ final class RewriteController {
     // MARK: - Popover
 
     private func iconClicked() {
+        Log.shared.add("Icon clicked | \(field?.appName ?? "no field")\(work != nil ? " | busy, ignored" : "")")
         guard work == nil else { return }
         if popover.isVisible {
             closePopover()
@@ -77,6 +78,7 @@ final class RewriteController {
         popover.model.actionsEnabled = unavailable == nil
         popover.model.canUndo = undoIsAvailable
         popover.show(near: icon.frame)
+        Log.shared.add("Menu opened\(popover.model.message.map { " | message: \($0)" } ?? "")")
         keys.arm()
         if mouseMonitor == nil {
             // A click anywhere outside Nudge closes the popover.
@@ -87,6 +89,7 @@ final class RewriteController {
     }
 
     private func closePopover() {
+        if popover.isVisible { Log.shared.add("Menu closed") }
         popover.hide()
         if let mouseMonitor {
             NSEvent.removeMonitor(mouseMonitor)
@@ -106,14 +109,18 @@ final class RewriteController {
     // MARK: - Rewrite
 
     private func run(_ action: RewriteAction) {
+        Log.shared.add("Action chosen | \(action.logName)")
         closePopover()
-        guard let field else { return }
+        guard let field else {
+            Log.shared.add("\(action.logName) | no text field is focused any more")
+            return
+        }
         guard let captured = TextAccess.capture(from: field.element) else {
             fail("Nudge could not read the text in this field.", log: "\(action.logName) | \(field.appName) | could not read text")
             return
         }
         guard !captured.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            fail("There is no text to rewrite yet.", log: nil)
+            fail("There is no text to rewrite yet.", log: "\(action.logName) | \(field.appName) | field is empty")
             return
         }
         let count = captured.text.count
@@ -183,13 +190,22 @@ final class RewriteController {
                 element: field.element, appName: field.appName, mode: captured.mode,
                 original: captured.text, replacement: result, location: captured.range?.location,
                 prefersPaste: field.prefersPaste, date: Date())
+            let check = await confirmation(of: result, in: field.element, method: method)
             finishWork()
             flash(.success)
-            Log.shared.add("\(action.logName) | \(field.appName) | \(captured.mode.rawValue) | \(counts) | \(seconds) | wrote via \(method.rawValue)")
+            Log.shared.add("\(action.logName) | \(field.appName) | \(captured.mode.rawValue) | \(counts) | \(seconds) | wrote via \(method.rawValue) | \(check)")
         } catch {
             finishWork()
             fail(error.localizedDescription, log: "\(action.logName) | \(field.appName) | write failed: \(error.localizedDescription)")
         }
+    }
+
+    /// Reads the field back after a write, for the debug log only.
+    private func confirmation(of result: String, in element: AXUIElement, method: WriteMethod) async -> String {
+        if method == .paste { await pause(milliseconds: 150) }
+        guard let value = AX.string(element, kAXValueAttribute) else { return "check: field unreadable" }
+        let probe = result.trimmingCharacters(in: .whitespacesAndNewlines)
+        return value.contains(probe) ? "check: new text is in the field" : "check: NEW TEXT NOT FOUND in field"
     }
 
     private func textIsUnchanged(_ captured: CapturedText, in element: AXUIElement) -> Bool {
