@@ -8,6 +8,7 @@ import ApplicationServices
 final class RewriteController {
     private let icon = IconPanel()
     private let popover = ActionPopover()
+    private let highlighter = ChangeHighlighter()
     let keys = KeyboardTap()
     let outcomes = OutcomeWatcher()
 
@@ -49,7 +50,10 @@ final class RewriteController {
     func fieldChanged(_ newField: FocusedField?) {
         let sameElement = newField?.element == field?.element
         field = newField
-        if !sameElement { outcomes.focusChanged(to: newField?.element) }
+        if !sameElement {
+            outcomes.focusChanged(to: newField?.element)
+            highlighter.hide()
+        }
         guard let newField else {
             icon.hide()
             closePopover()
@@ -88,6 +92,7 @@ final class RewriteController {
     }
 
     private func openPopover(message: String?, fromKeyboard: Bool = false) {
+        highlighter.hide()
         let unavailable = Rewriter.unavailableMessage
         let model = popover.model
         model.message = message ?? unavailable
@@ -222,6 +227,7 @@ final class RewriteController {
         outcomes.rerun(on: field.element, as: action.logName)
         Log.shared.add("Action chosen | \(action.logName)\(action.voiceSource.map { " | voice: \($0)" } ?? "")")
         closePopover()
+        highlighter.hide()
         guard let captured = TextAccess.capture(from: field.element) else {
             fail("Nudge could not read the text in this field.", log: "\(action.logName) | \(field.appName) | could not read text")
             return
@@ -302,6 +308,7 @@ final class RewriteController {
             startWatching(field: field, request: action, captured: captured, result: result, afterWrite: afterWrite)
             finishWork()
             flash(.success)
+            highlightChanges(captured, result: result, in: field.element)
             Log.shared.add("\(action.logName) | \(field.appName) | \(captured.mode.rawValue) | \(counts) | \(seconds) | wrote via \(method.rawValue) | \(check)")
             logText(before: captured.text, after: result, request: action)
         } catch {
@@ -316,6 +323,16 @@ final class RewriteController {
         guard let value = AX.string(element, kAXValueAttribute) else { return ("check: field unreadable", nil) }
         let found = TextAccess.looselyContains(value, result)
         return (found ? "check: new text is in the field" : "check: NEW TEXT NOT FOUND in field", value)
+    }
+
+    /// Marks the changed words, unless the writer has already left the field.
+    private func highlightChanges(_ captured: CapturedText, result: String, in element: AXUIElement) {
+        guard field?.element == element else { return }
+        let location = captured.mode == .whole ? 0 : captured.range?.location
+        highlighter.show(original: captured.text, rewrite: result, location: location, in: element) { [weak self] in
+            guard let field = self?.field, field.element == element else { return nil }
+            return field.visibleFrame
+        }
     }
 
     /// Starts watching what the writer does with this rewrite, for learning.
@@ -382,6 +399,7 @@ final class RewriteController {
 
     private func performUndo() {
         closePopover()
+        highlighter.hide()
         guard let record = undo, undoIsAvailable else {
             fail("Undo is no longer available. Try Command-Z.", log: nil)
             return

@@ -84,6 +84,48 @@ enum AX {
         return AXValueGetValue(value as! AXValue, .cfRange, &result) ? validRange(result) : nil
     }
 
+    /// Where a range of text is drawn, in Accessibility coordinates.
+    static func bounds(_ element: AXUIElement, range: CFRange) -> CGRect? {
+        guard let value = parameterized(element, kAXBoundsForRangeParameterizedAttribute, range),
+              CFGetTypeID(value) == AXValueGetTypeID() else {
+            return nil
+        }
+        var rect = CGRect.zero
+        guard AXValueGetValue(value as! AXValue, .cgRect, &rect) else { return nil }
+        return validFrame(origin: rect.origin, size: rect.size)
+    }
+
+    static func string(_ element: AXUIElement, range: CFRange) -> String? {
+        parameterized(element, kAXStringForRangeParameterizedAttribute, range) as? String
+    }
+
+    static func children(_ element: AXUIElement) -> [AXUIElement] {
+        var value: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(element, kAXChildrenAttribute as CFString, &value) == .success else {
+            return []
+        }
+        return value as? [AXUIElement] ?? []
+    }
+
+    /// How long a field's text is, without reading the text.
+    static func characterCount(_ element: AXUIElement) -> Int? {
+        var value: CFTypeRef?
+        guard AXUIElementCopyAttributeValue(element, kAXNumberOfCharactersAttribute as CFString, &value) == .success else {
+            return nil
+        }
+        return value as? Int
+    }
+
+    private static func parameterized(_ element: AXUIElement, _ attribute: String, _ range: CFRange) -> CFTypeRef? {
+        var range = range
+        guard let parameter = AXValueCreate(.cfRange, &range) else { return nil }
+        var value: CFTypeRef?
+        guard AXUIElementCopyParameterizedAttributeValue(element, attribute as CFString, parameter, &value) == .success else {
+            return nil
+        }
+        return value
+    }
+
     @discardableResult
     static func setRange(_ element: AXUIElement, _ attribute: String, _ range: CFRange) -> Bool {
         var range = range

@@ -37,7 +37,10 @@ on.
 3. Pick an action with the arrow keys and Return, or press 1 to 8:
    Fix spelling and grammar, Make concise, Improve writing, Formal, Casual,
    Friendly, Direct, or a custom instruction.
-4. Changed your mind? Open the menu again and choose Undo.
+4. The words that changed light up green for a few seconds. They clear as
+   soon as you type or scroll. Apps that don't tell Nudge where words sit
+   show no green.
+5. Changed your mind? Open the menu again and choose Undo.
 
 The ✦ in the menu bar has your writer profile, what Nudge learned, and
 settings. Right Control works as the trigger too.
@@ -52,7 +55,8 @@ ignores the double-tap, and reads no text. A website covers its subdomains too.
 - Text is rewritten by Apple's on-device model. It is never sent anywhere.
 - When you click into a box, Nudge checks whether it holds text. For some
   kinds of box that means reading the value for a moment. It is not kept.
-- Nudge reads a box's text to rewrite it. While learning is on, it also reads
+- Nudge reads a box's text to rewrite it, and again straight after to mark
+  what changed. While learning is on, it also reads
   that box for up to 90 seconds afterwards, and saves short snippets on your
   Mac. You can turn learning off or delete what it saved.
 - Password fields are skipped.
