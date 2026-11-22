@@ -188,7 +188,11 @@ if [[ $PUBLISH == 1 ]]; then
     git tag -a "v$VERSION" -m "Nudge $VERSION"
     git push origin "v$VERSION"
   fi
-  gh release create "v$VERSION" "$DMG" "$OUT/appcast.xml" --repo "$REPO" \
+  # The same file under a name that never changes, for the website's Download
+  # button: releases/latest/download/Nudge.dmg always serves the newest release.
+  STABLE_DMG="$OUT/Nudge.dmg"
+  cp "$DMG" "$STABLE_DMG"
+  gh release create "v$VERSION" "$DMG" "$STABLE_DMG" "$OUT/appcast.xml" --repo "$REPO" \
     --title "Nudge $VERSION" --verify-tag --generate-notes \
     --notes "Download **Nudge-$VERSION.dmg**, open it, and drag Nudge to Applications. If you already have Nudge, it will offer this update by itself."
 else

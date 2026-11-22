@@ -17,8 +17,8 @@ your writing anywhere.
 
 ## Install
 
-Download `Nudge-x.y.z.dmg` from
-[Releases](https://github.com/barry-napier/nudge/releases), open it, and drag
+[Download Nudge](https://github.com/barry-napier/nudge/releases/latest/download/Nudge.dmg),
+open it, and drag
 Nudge to Applications. Nudge updates itself.
 
 Or with Homebrew, once the cask is published:
