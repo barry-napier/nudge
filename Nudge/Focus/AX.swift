@@ -41,7 +41,22 @@ enum AX {
     /// primary screen, y grows downward.
     static func frame(_ element: AXUIElement) -> CGRect? {
         guard let origin = point(element), let size = size(element) else { return nil }
+        return validFrame(origin: origin, size: size)
+    }
+
+    /// Other apps can report infinite, NaN or absurd numbers. Turning those
+    /// into an Int, or a window position, crashes Nudge, so they stop here.
+    static func validFrame(origin: CGPoint, size: CGSize) -> CGRect? {
+        let numbers = [origin.x, origin.y, size.width, size.height]
+        guard numbers.allSatisfy({ $0.isFinite && abs($0) < 1e9 }) else { return nil }
         return CGRect(origin: origin, size: size)
+    }
+
+    /// Other apps use NSNotFound (Int.max) for "no range". Adding to it overflows.
+    static func validRange(_ range: CFRange) -> CFRange? {
+        let limit = Int(Int32.max)
+        guard (0...limit).contains(range.location), (0...limit).contains(range.length) else { return nil }
+        return range
     }
 
     static func url(_ element: AXUIElement) -> URL? {
@@ -66,7 +81,7 @@ enum AX {
             return nil
         }
         var result = CFRange()
-        return AXValueGetValue(value as! AXValue, .cfRange, &result) ? result : nil
+        return AXValueGetValue(value as! AXValue, .cfRange, &result) ? validRange(result) : nil
     }
 
     @discardableResult

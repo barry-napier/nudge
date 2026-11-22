@@ -1,6 +1,9 @@
 import AppKit
 
 /// Pastes text through the clipboard, then puts the user's clipboard back.
+/// Both writes are for this Mac only, so Universal Clipboard never copies them
+/// to the user's other devices. That includes putting the old clipboard back:
+/// it may hold a password that was marked for this Mac only.
 @MainActor
 enum Clipboard {
     /// Marks our temporary clipboard content so clipboard managers skip it.
@@ -11,7 +14,7 @@ enum Clipboard {
         let pasteboard = NSPasteboard.general
         let saved = snapshot(pasteboard)
 
-        pasteboard.clearContents()
+        pasteboard.prepareForNewContents(with: .currentHostOnly)
         let item = NSPasteboardItem()
         item.setString(text, forType: .string)
         item.setString("", forType: transientType)
@@ -38,7 +41,7 @@ enum Clipboard {
     }
 
     private static func restore(_ saved: Snapshot, to pasteboard: NSPasteboard) {
-        pasteboard.clearContents()
+        pasteboard.prepareForNewContents(with: .currentHostOnly)
         let items = saved.map { pairs -> NSPasteboardItem in
             let item = NSPasteboardItem()
             for (type, data) in pairs {

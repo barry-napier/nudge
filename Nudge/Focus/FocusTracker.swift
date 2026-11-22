@@ -229,9 +229,14 @@ final class FocusTracker: NSObject {
         }
         // Rich text editors on web pages (contenteditable) often use other roles.
         // Their value must be text: switches and sliders have settable number values.
-        if valueSettable, AX.hasAttribute(element, kAXSelectedTextRangeAttribute),
-           AX.string(element, kAXValueAttribute) != nil {
-            return (true, "editable content")
+        // That check reads the value, so it never runs on a website where Nudge is off.
+        if valueSettable, AX.hasAttribute(element, kAXSelectedTextRangeAttribute) {
+            if isOff?(bundleID, scanAncestors(of: element).2) == true {
+                return (false, "Nudge is off on this site")
+            }
+            if AX.string(element, kAXValueAttribute) != nil {
+                return (true, "editable content")
+            }
         }
         return (false, "role not editable")
     }

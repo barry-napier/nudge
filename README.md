@@ -1,8 +1,10 @@
 # Nudge
 
 A private writing assistant for your Mac. Nudge fixes, shortens and rewrites
-text in any app, using Apple's AI model on your Mac. Nothing you write leaves
-it.
+text in almost any app, using Apple's AI model on your Mac. It never sends
+your writing anywhere.
+
+**[nudge.bnapier.dev](https://nudge.bnapier.dev)**
 
 - **Works everywhere you type.** Mail, Notes, Slack, Messages, Safari, Chrome.
 - **Keyboard first.** Double-tap the right Option key, pick an action, done.
@@ -43,18 +45,27 @@ settings. Right Control works as the trigger too.
 To turn Nudge off somewhere, open the ✦ menu while you're in that app and
 choose **Turn Off in [app]**, or **Turn Off on [website]** in a browser.
 **Where Nudge Is Off…** lists them all. Where Nudge is off, it shows nothing,
-ignores the double-tap, and reads nothing. A website covers its subdomains too.
+ignores the double-tap, and reads no text. A website covers its subdomains too.
 
 ## Privacy
 
 - Text is rewritten by Apple's on-device model. It is never sent anywhere.
-- Nudge reads a text box only when you ask it to rewrite it, and never reads
-  password fields.
+- When you click into a box, Nudge checks whether it holds text. For some
+  kinds of box that means reading the value for a moment. It is not kept.
+- Nudge reads a box's text to rewrite it. While learning is on, it also reads
+  that box for up to 90 seconds afterwards, and saves short snippets on your
+  Mac. You can turn learning off or delete what it saved.
+- Password fields are skipped.
+- To paste in browsers and some apps, Nudge uses the clipboard for a moment and
+  then puts yours back. Both are marked for this Mac only, so Universal
+  Clipboard does not copy them to your other devices.
 - Your profile and what Nudge learns are stored only in
   `~/Library/Application Support/Nudge`. You can see, edit, export or delete
   all of it.
-- The only network request is the update check, which downloads a small file
-  from this repository's releases.
+- The only network use is updates: checking for them and downloading them from
+  this repository's releases.
+- The debug log is in `~/Library/Logs/Nudge`. Public builds never put your
+  text in it.
 
 ## Why not the Mac App Store?
 
@@ -100,6 +111,11 @@ Opens its own TextEdit file, then rewrites, edits and undoes text, checks what
 Nudge recorded, runs a learning pass, and cleans up. It only touches its own
 file: every step checks its target at the moment it acts. Don't type while it
 runs.
+
+## Website
+
+[nudge.bnapier.dev](https://nudge.bnapier.dev) is the plain HTML in `site/`,
+hosted on Vercel. There is no build step: open `site/index.html` to preview it.
 
 ## Releasing
 

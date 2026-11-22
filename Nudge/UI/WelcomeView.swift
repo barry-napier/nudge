@@ -45,7 +45,7 @@ struct WelcomeView: View {
             }
             Text("Nudge fixes and rewrites your writing in any app, with Apple's AI on your Mac.")
                 .font(.title3)
-            Label("Nothing you write leaves your Mac. There is no account and no server.", systemImage: "lock")
+            Label("Nudge never sends your writing anywhere. There is no account and no server.", systemImage: "lock")
             Label("It's open source, so anyone can check that.", systemImage: "chevron.left.forwardslash.chevron.right")
             Spacer(minLength: 6)
             HStack {
@@ -62,7 +62,8 @@ struct WelcomeView: View {
         VStack(alignment: .leading, spacing: 14) {
             Text("One permission").font(.title.bold())
             Text("Nudge needs Accessibility access. It uses it to see which text box you are typing in, to read the text you ask it to rewrite, to put the new text back, and to notice the double-tap of the Option key.")
-            Text("Nudge only reads a text box when you ask it to rewrite it. It never reads password fields.")
+            Text("Nudge checks the box you click into to see if it holds text. It reads that text to rewrite it and, while learning is on, for up to 90 seconds after. It skips password fields, and you can turn learning off.")
+                .fixedSize(horizontal: false, vertical: true)
                 .foregroundStyle(.secondary)
             Text(state.isTrusted ? "🟢 Accessibility is on" : "🔴 Accessibility is not on yet")
                 .font(.headline)

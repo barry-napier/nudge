@@ -150,7 +150,7 @@ struct WriterProfile: Codable, Equatable, Sendable {
         case offApps, offSites
     }
 
-    /// True where Nudge should do nothing at all: no icon, no menu, no reading.
+    /// True where Nudge should do nothing at all: no icon, no menu, no reading of text.
     func isOff(bundleID: String?, site: String?) -> Bool {
         if let bundleID, offApps[bundleID] != nil { return true }
         if let site, offSites.contains(where: { Self.host(site, matches: $0) }) { return true }

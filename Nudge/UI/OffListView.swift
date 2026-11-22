@@ -2,7 +2,7 @@ import AppKit
 import SwiftUI
 
 /// The apps and websites where Nudge is fully off: no icon, no menu,
-/// no double-tap, and nothing is read.
+/// no double-tap, and no text is read.
 struct OffListView: View {
     @Bindable var store: ProfileStore
     let changed: () -> Void
