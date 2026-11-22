@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nudge · Write it rough, nudge it right</title>
+<meta name="description" content="A free, open-source writing helper for your Mac. Double-tap right Option to fix, shorten or rewrite text, using Apple's AI model on your Mac.">
+<link rel="canonical" href="https://nudge.bnapier.dev/">
+<meta property="og:title" content="Nudge">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://nudge.bnapier.dev/">
+<meta property="og:image" content="https://nudge.bnapier.dev/assets/share.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta property="og:description" content="Write it rough. Nudge it right. A free writing helper that runs on your Mac.">
+<meta name="color-scheme" content="light dark">
+<link rel="icon" href="assets/favicon.png">
+<link rel="stylesheet" href="styles.css">
+<script>
+  try { const t = localStorage.getItem('theme'); if (t) document.documentElement.dataset.theme = t } catch {}
+</script>
+<script src="main.js" defer></script>
+</head>
+<body>
+
+<nav class="nav" aria-label="Main">
+  <a class="home" href="#top" aria-label="Nudge, top of page"><img src="assets/icon.png" width="28" height="28" alt=""></a>
+  <a class="wide" href="#films">See it work</a>
+  <a class="wide" href="#screens">Screens</a>
+  <a class="wide" href="#privacy">Privacy</a>
+  <a href="#install">Install</a>
+  <button id="theme" type="button" aria-label="Switch between light and dark">◐</button>
+</nav>
+
+<main id="top">
+  <header class="hero">
+    <h1 aria-label="Write it rough. Nudge it right.">
+      <span aria-hidden="true">Write it <span class="typo">ruff<svg viewBox="0 0 120 40" preserveAspectRatio="none"><path d="M3 27 C30 20 70 19 117 12"/></svg><i>rough</i></span>.<br>Nudge it right.</span>
+    </h1>
+    <div class="pitch">
+      <p>Tap right Option twice in almost any Mac app. Nudge fixes, shortens or rewrites your text, right where you typed it, with Apple’s AI on your Mac.</p>
+      <div class="actions">
+        <a class="download" href="https://github.com/barry-napier/nudge/releases/latest">Download for Mac</a>
+        <a class="source" href="https://github.com/barry-napier/nudge">Read the code</a>
+      </div>
+      <p class="needs">Free. No account. Needs macOS 26, Apple silicon and Apple Intelligence.</p>
+    </div>
+  </header>
+
+  <section class="stage" id="stage" aria-label="Nudge demo" data-phase="menu">
+    <div class="field">
+      <p class="draft">
+        <span class="ghost" aria-hidden="true">i think we should maybe push the launch to thursday, the onboarding still has a few bugs and i dont want to rush it</span>
+        <span id="draft">hey sam can you send me the q3 report by friday, i need it for the board meeting on monday</span>
+      </p>
+      <span class="dot" aria-hidden="true"></span>
+    </div>
+    <img id="menu" class="menu" src="assets/shots/menu-fix-light.webp" width="260" height="258" alt="The Nudge menu, with eight ways to rewrite text">
+    <div class="trigger">
+      <button id="tap" type="button" aria-label="Play the rewrite">
+        <kbd><span>⌥</span>option</kbd><kbd><span>⌥</span>option</kbd>
+      </button>
+      <p>Tap right Option twice.<br>It works on this page too.</p>
+    </div>
+    <div class="stage-controls">
+      <span class="takes" role="group" aria-label="Demo">
+        <button type="button" data-demo="0" aria-pressed="true" aria-label="Fix spelling and grammar">1</button>
+        <button type="button" data-demo="1" aria-pressed="false" aria-label="Improve writing">2</button>
+        <button type="button" data-demo="2" aria-pressed="false" aria-label="Direct">3</button>
+      </span>
+      <button id="pause" type="button" aria-pressed="false">Pause</button>
+    </div>
+  </section>
+
+  <section id="films" class="section">
+    <div class="section-head">
+      <h2>See it work</h2>
+      <p>Every rewrite here came from Nudge’s own code and Apple’s model. Every menu and window is Nudge’s real screen, with sample data. Click one to make it bigger.</p>
+    </div>
+
+    <div class="gallery">
+      <article class="card">
+        <button class="film f-fix" type="button" aria-label="Enlarge: Fix the slips">
+          <span class="take" data-take="1"><span class="proof"><b>h</b>ey <b>s</b>am can you send me the <b>q</b>3 report by <b>f</b>riday</span><span class="answer">Hey Sam, can you send me the Q3 report by Friday?</span></span>
+          <span class="take" data-take="2" hidden><span class="proof"><b>i</b> think we should maybe push the launch to <b>t</b>hursday</span><span class="answer">I think we should maybe push the launch to Thursday</span></span>
+          <span class="take" data-take="3" hidden><span class="proof"><b>i</b> need it for the board meeting on <b>m</b>onday</span><span class="answer">I need it for the board meeting on Monday.</span></span>
+        </button>
+        <div class="meta">
+          <h3>Fix the slips <kbd>1</kbd></h3>
+          <p>Spelling, grammar and capitals. Your words stay.</p>
+          <div class="takes" role="group" aria-label="Fix examples"></div>
+        </div>
+      </article>
+
+      <article class="card">
+        <button class="film f-short" type="button" aria-label="Enlarge: Say it shorter">
+          <span class="take" data-take="1"><span class="long">I just wanted to quickly reach out and see if you might possibly have some time at some point this week to have a quick chat about the new budget</span><span class="short">I’d like to have a quick chat about the new budget this week.</span><span class="count">30 words → 13</span></span>
+          <span class="take" data-take="2" hidden><span class="long">hey sam can you send me the q3 report by friday, i need it for the board meeting on monday</span><span class="short">Hey Sam, send me the Q3 report by Friday.</span><span class="count">20 words → 9</span></span>
+        </button>
+        <div class="meta">
+          <h3>Say it shorter <kbd>2</kbd></h3>
+          <p>Cuts the waffle and keeps the point.</p>
+          <div class="takes" role="group" aria-label="Shorter examples"></div>
+        </div>
+      </article>
+
+      <article class="card">
+        <button class="film f-tone" type="button" aria-label="Enlarge: Change the tone">
+          <span class="take formal" data-take="1"><span class="label">Formal</span><span class="note">I would appreciate it if you could spare some time this week to discuss the new budget.</span></span>
+          <span class="take casual" data-take="2" hidden><span class="label">Casual</span><span class="note">Hey, just wanted to see if you have some time this week to chat about the new budget. Let me know when you’re free!</span></span>
+          <span class="take direct" data-take="3" hidden><span class="label">Direct</span><span class="note">I would like to schedule a quick chat this week about the new budget.</span></span>
+        </button>
+        <div class="meta">
+          <h3>Change the tone <kbd>4–7</kbd></h3>
+          <p>Formal, casual, friendly or direct.</p>
+          <div class="takes" role="group" aria-label="Tone examples"></div>
+        </div>
+      </article>
+
+      <article class="card">
+        <button class="film f-keys" type="button" aria-label="Enlarge: Hands on the keys">
+          <span class="take" data-take="1"><span class="line">Never<br>touch<br>the mouse.</span><img src="assets/shots/menu-dark.webp" alt=""></span>
+          <span class="take" data-take="2" hidden><span class="line">Or just<br>say what<br>you want.</span><img class="custom" src="assets/shots/menu-custom-dark.webp" alt=""></span>
+          <span class="take" data-take="3" hidden><span class="line">Hate it?<br>Undo.</span><img src="assets/shots/menu-undo-dark.webp" alt=""></span>
+        </button>
+        <div class="meta">
+          <h3>Hands on the keys <kbd>1–8</kbd></h3>
+          <p>Pick, type your own request, or undo.</p>
+          <div class="takes" role="group" aria-label="Keyboard examples"></div>
+        </div>
+      </article>
+
+      <article class="card">
+        <button class="film f-voice" type="button" aria-label="Enlarge: Sound like you">
+          <span class="take" data-take="1"><span class="line">Still<br>sounds<br>like you.</span><img src="assets/shots/profile-light.webp" alt=""></span>
+          <span class="take" data-take="2" hidden><span class="line">Casual<br>in Slack.<br>Formal<br>in Mail.</span><img class="voices" src="assets/shots/voices-light.webp" alt=""></span>
+        </button>
+        <div class="meta">
+          <h3>Sound like you</h3>
+          <p>Your tone, spelling and banned words.</p>
+          <div class="takes" role="group" aria-label="Voice examples"></div>
+        </div>
+      </article>
+
+      <article class="card">
+        <button class="film f-learn" type="button" aria-label="Enlarge: It learns, you decide">
+          <span class="take" data-take="1"><span class="line">It notices.<br>You decide.</span><img src="assets/shots/learning-light.webp" alt=""></span>
+        </button>
+        <div class="meta">
+          <h3>It learns, you decide</h3>
+          <p>Suggests style rules. Keep or dismiss each one.</p>
+        </div>
+      </article>
+
+      <article class="card">
+        <button class="film f-off" type="button" aria-label="Enlarge: Off where you say">
+          <span class="take" data-take="1"><span class="line">Not<br>here,<br>thanks.</span><img src="assets/shots/off-list-dark.webp" alt=""></span>
+        </button>
+        <div class="meta">
+          <h3>Off where you say</h3>
+          <p>Switch it off for any app or website.</p>
+        </div>
+      </article>
+
+      <article class="card">
+        <button class="film f-start" type="button" aria-label="Enlarge: Ready in a minute">
+          <span class="take" data-take="1"><span class="line">One minute, and you’re writing.</span><img src="assets/shots/try-it-light.webp" alt=""></span>
+        </button>
+        <div class="meta">
+          <h3>Ready in a minute</h3>
+          <p>A short welcome walks you through setup.</p>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section id="screens" class="section screens">
+    <div class="screen-copy">
+      <h2>A small app that stays out of the way</h2>
+      <p>Nudge lives in your menu bar. It only opens a window when you want to change something.</p>
+      <div class="tabs" role="group" aria-label="Screenshots">
+        <button type="button" data-screen="profile" aria-pressed="true"><b>Writer Profile</b><span>How you like to write.</span></button>
+        <button type="button" data-screen="learning" aria-pressed="false"><b>What Nudge Learned</b><span>Every rule, yours to keep or delete.</span></button>
+        <button type="button" data-screen="off-list" aria-pressed="false"><b>Where Nudge Is Off</b><span>The places it leaves alone.</span></button>
+        <button type="button" data-screen="try-it" aria-pressed="false"><b>Welcome</b><span>All you need to know, in four lines.</span></button>
+      </div>
+    </div>
+    <div class="screen">
+      <img id="screen" src="assets/shots/profile-light.webp" width="1120" height="1504" alt="Nudge Writer Profile window">
+    </div>
+  </section>
+
+  <section id="privacy" class="section privacy">
+    <h2>The AI is already on your Mac.<br><em>So your words don’t need a server.</em></h2>
+    <dl>
+      <div><dt>Who does the rewriting?</dt><dd>Apple’s model, on your Mac. Nudge has no server, no account and no tracking.</dd></div>
+      <div><dt>Does it use the internet?</dt><dd>Only for updates, which come from GitHub.</dd></div>
+      <div><dt>What can it read?</dt><dd>It looks at the box you’re in to see if it holds text, and reads that text to rewrite it. It skips password boxes.</dd></div>
+      <div><dt>What does it save?</dt><dd>With learning on, it watches a rewrite for up to 90 seconds and saves short snippets on your Mac. You can switch this off or delete them.</dd></div>
+      <div><dt>Does it use the clipboard?</dt><dd>In browsers and some apps, for a moment, to paste. It marks that for this Mac only, then puts back what you had.</dd></div>
+      <div><dt>Can it get things wrong?</dt><dd>Yes, it’s AI. Read it before you send it. Undo is in the same menu. It handles up to 3,000 characters at a time.</dd></div>
+    </dl>
+  </section>
+
+  <section id="install" class="section install">
+    <h2>Give your words a nudge.</h2>
+    <ol>
+      <li>Download the <b>.dmg</b> file from GitHub.</li>
+      <li>Open it and drag Nudge into Applications.</li>
+      <li>Open Nudge and switch on Accessibility when it asks.</li>
+    </ol>
+    <a class="download" href="https://github.com/barry-napier/nudge/releases/latest">Download for Mac</a>
+    <p class="needs">Free and open source. Checked by Apple for malware. Updates itself.</p>
+  </section>
+</main>
+
+<footer>
+  <span>Nudge · Made by Barry Napier</span>
+  <a href="https://github.com/barry-napier/nudge">GitHub</a>
+  <a href="https://github.com/barry-napier/nudge/blob/main/LICENSE">MIT License</a>
+  <a href="https://github.com/barry-napier/nudge/issues">Report a problem</a>
+</footer>
+
+<dialog id="viewer" aria-label="Bigger view">
+  <button class="close" type="button">Close</button>
+  <div id="viewer-film"></div>
+</dialog>
+
+</body>
+</html>
