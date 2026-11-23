@@ -159,6 +159,7 @@ final class FocusTracker: NSObject {
         if let bundleID, Self.chromiumBundleIDs.contains(bundleID) {
             enhanced = AX.setBool(app, "AXEnhancedUserInterface", true)
         }
+        Log.shared.add("\(appName) | accessibility setup | bundle \(bundleID ?? "unknown") | AXManualAccessibility=\(manual.rawValue) | AXEnhancedUserInterface=\(enhanced.map { String($0.rawValue) } ?? "not requested")")
         if manual == .success || enhanced == .success {
             Log.shared.add("\(appName): turned on web accessibility")
         }
@@ -190,18 +191,18 @@ final class FocusTracker: NSObject {
 
     private func refreshFocus(force: Bool) {
         guard let appElement else { return }
-        let element = AX.element(appElement, kAXFocusedUIElementAttribute)
+        let focusResult = AX.elementResult(appElement, kAXFocusedUIElementAttribute)
+        let element = focusResult.element
         if !force, let element, let focused, CFEqual(element, focused) {
             refreshFrame()
             return
         }
-        if !force, element == nil, focused == nil { return }
 
         focused = element
         guard let element else {
             focusedIsEditable = false
             clipAncestors = []
-            logOnce("\(appName) | nothing focused")
+            logOnce("\(appName) | nothing focused | AXFocusedUIElement: \(focusResult.diagnostic)")
             report(nil)
             return
         }

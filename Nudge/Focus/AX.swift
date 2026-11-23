@@ -12,12 +12,22 @@ enum AX {
     }
 
     static func element(_ element: AXUIElement, _ attribute: String) -> AXUIElement? {
+        elementResult(element, attribute).element
+    }
+
+    /// Keep the AX error separate from a successful response without an element.
+    static func elementResult(_ element: AXUIElement, _ attribute: String)
+        -> (element: AXUIElement?, diagnostic: String) {
         var value: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(element, attribute as CFString, &value) == .success,
-              let value, CFGetTypeID(value) == AXUIElementGetTypeID() else {
-            return nil
+        let error = AXUIElementCopyAttributeValue(element, attribute as CFString, &value)
+        guard error == .success else {
+            return (nil, "AXError \(error.rawValue) (\(error))")
         }
-        return (value as! AXUIElement)
+        guard let value else { return (nil, "success, no value") }
+        guard CFGetTypeID(value) == AXUIElementGetTypeID() else {
+            return (nil, "success, unexpected value type \(CFGetTypeID(value))")
+        }
+        return ((value as! AXUIElement), "success")
     }
 
     static func isSettable(_ element: AXUIElement, _ attribute: String) -> Bool {
