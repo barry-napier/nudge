@@ -106,7 +106,7 @@ struct RewriteRequest: Sendable {
 
     /// How many versions to ask for. Banned words make extra versions worth it.
     var candidateCount: Int {
-        if strategy == .single, action != .fix, !avoidWords.isEmpty { return 3 }
+        if strategy == .single, action != .fix, !avoidWords.isEmpty { return 2 }
         return strategy.count
     }
 

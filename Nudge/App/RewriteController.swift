@@ -93,6 +93,7 @@ final class RewriteController {
 
     private func openPopover(message: String?, fromKeyboard: Bool = false) {
         highlighter.hide()
+        Rewriter.warmUp()
         let unavailable = Rewriter.unavailableMessage
         let model = popover.model
         model.message = message ?? unavailable
@@ -304,10 +305,12 @@ final class RewriteController {
                 element: field.element, appName: field.appName, mode: captured.mode,
                 original: captured.text, replacement: result, location: captured.range?.location,
                 prefersPaste: field.prefersPaste, date: Date())
-            let (check, afterWrite) = await confirmation(of: result, in: field.element, method: method)
-            startWatching(field: field, request: action, captured: captured, result: result, afterWrite: afterWrite)
             finishWork()
             flash(.success)
+            // After the success flash: a paste needs a moment to land, and only
+            // the log, the learning watch and the highlight need to wait for it.
+            let (check, afterWrite) = await confirmation(of: result, in: field.element, method: method)
+            startWatching(field: field, request: action, captured: captured, result: result, afterWrite: afterWrite)
             highlightChanges(captured, result: result, in: field.element)
             Log.shared.add("\(action.logName) | \(field.appName) | \(captured.mode.rawValue) | \(counts) | \(seconds) | wrote via \(method.rawValue) | \(check)")
             logText(before: captured.text, after: result, request: action)

@@ -2,7 +2,8 @@ import Foundation
 
 /// Apple's small model is random: the same request sometimes comes back
 /// barely changed. For some actions Nudge asks for a few versions at once
-/// and keeps the best one.
+/// and keeps the best one. Two, not three: the model makes them one after
+/// another, so each extra version adds about a second.
 enum CandidatePicker {
     enum Strategy: Sendable {
         /// One version. For fixes, where small changes are the point.
@@ -12,7 +13,7 @@ enum CandidatePicker {
         /// Keep the shortest version. For making text concise.
         case shortest
 
-        var count: Int { self == .single ? 1 : 3 }
+        var count: Int { self == .single ? 1 : 2 }
     }
 
     static func pick(
