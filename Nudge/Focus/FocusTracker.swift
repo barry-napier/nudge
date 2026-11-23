@@ -60,6 +60,11 @@ final class FocusTracker: NSObject {
     private static let browserBundleIDs: Set<String> = chromiumBundleIDs.union([
         "com.apple.Safari", "com.apple.SafariTechnologyPreview", "org.mozilla.firefox",
     ])
+    /// Apps built on Microsoft's Edge web engine (new Teams). Like Chrome, they
+    /// hide their text fields until AXEnhancedUserInterface is turned on.
+    private static let edgeWebViewBundleIDs: Set<String> = [
+        "com.microsoft.teams2", "com.microsoft.teams",
+    ]
 
     func start() {
         NSWorkspace.shared.notificationCenter.addObserver(
@@ -152,12 +157,16 @@ final class FocusTracker: NSObject {
     /// Chrome and Electron apps build their accessibility tree only on request.
     private func enableWebAccessibility(_ app: AXUIElement, pid: pid_t) {
         guard !webAccessibilityEnabled.contains(pid) else { return }
-        webAccessibilityEnabled.insert(pid)
         // Electron apps (Slack, VS Code, and others) honour AXManualAccessibility.
         let manual = AX.setBool(app, "AXManualAccessibility", true)
         var enhanced: AXError?
-        if let bundleID, Self.chromiumBundleIDs.contains(bundleID) {
+        if let bundleID, Self.chromiumBundleIDs.union(Self.edgeWebViewBundleIDs).contains(bundleID) {
             enhanced = AX.setBool(app, "AXEnhancedUserInterface", true)
+        }
+        // Teams can refuse while it is still starting, so it is tried again next time.
+        let isEdgeWebView = bundleID.map(Self.edgeWebViewBundleIDs.contains) ?? false
+        if !isEdgeWebView || manual == .success || enhanced == .success {
+            webAccessibilityEnabled.insert(pid)
         }
         Log.shared.add("\(appName) | accessibility setup | bundle \(bundleID ?? "unknown") | AXManualAccessibility=\(manual.rawValue) | AXEnhancedUserInterface=\(enhanced.map { String($0.rawValue) } ?? "not requested")")
         if manual == .success || enhanced == .success {
@@ -192,7 +201,7 @@ final class FocusTracker: NSObject {
     private func refreshFocus(force: Bool) {
         guard let appElement else { return }
         let focusResult = AX.elementResult(appElement, kAXFocusedUIElementAttribute)
-        let element = focusResult.element
+        let element = focusResult.element ?? systemWideFocus()
         if !force, let element, let focused, CFEqual(element, focused) {
             refreshFrame()
             return
@@ -218,6 +227,17 @@ final class FocusTracker: NSObject {
         let frameText = AX.frame(element).map(Self.describe) ?? "no frame"
         logOnce("\(appName) | \(focusedRole) | \(editable ? "text field" : "not a text field"): \(reason) | \(frameText)")
         refreshFrame()
+    }
+
+    /// Some apps (new Teams) answer the app-level focus question with "no value"
+    /// but still answer the system-wide one. Use it only when it is this app's.
+    private func systemWideFocus() -> AXUIElement? {
+        let system = AXUIElementCreateSystemWide()
+        AXUIElementSetMessagingTimeout(system, 0.25)
+        guard let element = AX.element(system, kAXFocusedUIElementAttribute) else { return nil }
+        var owner: pid_t = 0
+        guard AXUIElementGetPid(element, &owner) == .success, owner == pid else { return nil }
+        return element
     }
 
     private func classify(_ element: AXUIElement, role: String, subrole: String?) -> (Bool, String) {
@@ -286,7 +306,9 @@ final class FocusTracker: NSObject {
             report(nil)
             return
         }
-        let isBrowser = bundleID.map(Self.browserBundleIDs.contains) ?? false
+        let isBrowser = bundleID.map {
+            Self.browserBundleIDs.contains($0) || Self.edgeWebViewBundleIDs.contains($0)
+        } ?? false
         report(FocusedField(
             element: focused, pid: pid, appName: appName, role: focusedRole,
             bundleID: bundleID, site: focusedSite,
